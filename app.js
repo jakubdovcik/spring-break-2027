@@ -235,6 +235,69 @@
   }
 
   /* ---------------- explore: detail ---------------- */
+
+  /* ---------------- planning: pace, door-to-door, before you go, plan B ---------------- */
+  const P = window.PLAN || { dest: {}, common: { book: [], clash: [] }, entry: {}, combo: {} };
+  const planOf = id => P.dest[id] || {};
+  const entryKeys = id => {
+    const keys = new Set(planOf(id).entry || P.combo[id] || []);
+    const b = S.budget || {};
+    [b.start && b.start.c, b.end && b.end.c].forEach(c => { if (c === "london") keys.add("uk"); else if (c === "dublin") keys.add("ie"); else if (c) keys.add("eu"); });
+    return [...keys];
+  };
+  const MEAN0 = { provence: 4, socal: 3 };
+  const meaning = id => (S.meaning || {})[id] ?? MEAN0[id] ?? 0;
+  const hrs = h => (Math.round(h * 2) / 2) + " h";
+  function paceTiles(id) {
+    const p = window.budgetPace ? window.budgetPace(id) : null, d2 = planOf(id).d2d;
+    if (!p) return "";
+    const t = (v, l, sub) => `<div><b>${v}</b><small>${l}</small>${sub ? `<em>${sub}</em>` : ""}</div>`;
+    return `<div class="pace">
+      ${t(p.moves, p.moves === 1 ? "hotel change" : "hotel changes", `${p.stops} ${p.stops === 1 ? "stop" : "stops"}`)}
+      ${t(p.fmt(p.travelH), "on the move between stops", p.longest ? `longest ${p.fmt(p.longest)}` : "")}
+      ${t(p.still, "days with no move", `of ${p.nights} nights`)}
+      ${d2 ? t(hrs(d2.BOS[0]) + " / " + hrs(d2.BOS[1]), "door to door from Boston", `out / back · Baltimore ${hrs(d2.BWI[0])} / ${hrs(d2.BWI[1])}`) : ""}
+    </div>`;
+  }
+  function paceBlock(d) {
+    const d2 = planOf(d.id).d2d;
+    return `<div class="blk" id="s-pace"><h2>Pace</h2>
+      <p class="sub">How restful the week is depends mostly on how often you pack up and how long you spend getting places. These numbers follow the route as it's set up in the budget, add-ons included.</p>
+      ${paceTiles(d.id)}
+      ${d2 ? `<p class="sub" style="margin-top:12px">${esc(d2.how)} Door to door means leaving home to reaching the first hotel, including getting to the airport 2 hours early.</p>` : ""}
+    </div>`;
+  }
+  function goLists(id) {
+    const pl = planOf(id);
+    const ord = w => /^Now/.test(w) ? 0 : /^Dec/.test(w) ? 1 : /^Mid Dec/.test(w) ? 1.5 : /^Jan/.test(w) ? 2 : /^Feb/.test(w) ? 3 : /weeks before/.test(w) ? 4 : /before/.test(w) ? 5 : 2.5;
+    const book = [...(pl.book || []), ...P.common.book].map((x, i) => [x, i]).sort((p, q) => ord(p[0][0]) - ord(q[0][0]) || p[1] - q[1]).map(p => p[0]);
+    const clash = [...(pl.clash || []), ...P.common.clash];
+    const ent = entryKeys(id).map(k => P.entry[k]).filter(Boolean);
+    return { book, clash, ent };
+  }
+  function goBlock(d, checks) {
+    const { book, clash, ent } = goLists(d.id);
+    const done = S.done || {};
+    const bk = (x, i) => checks
+      ? `<li><label><input type="checkbox" data-done="${d.id}|${i}" ${done[d.id + "|" + i] ? "checked" : ""}><span class="when">${esc(x[0])}</span><span>${esc(x[1])}</span></label></li>`
+      : `<li><span class="when">${esc(x[0])}</span><span>${esc(x[1])}</span></li>`;
+    return `<div class="blk" id="s-go"><h2>Before you go</h2>
+      <div class="go">
+        <div><h4>Book by</h4><ul class="dl">${book.map(bk).join("")}</ul></div>
+        <div><h4>Date clashes, 12–21 March</h4><ul class="dl">${clash.map(x => `<li><span class="when">${esc(x[0])}</span><span>${esc(x[1])}</span></li>`).join("")}</ul></div>
+        <div><h4>Entry rules</h4>${ent.map(([name, lines]) => `<p class="en"><b>${esc(name)}</b></p><ul class="plain">${lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>`).join("")}
+          <p class="sub">Rules change. Check the official sites before you book.</p></div>
+      </div></div>`;
+  }
+  function planBBlock(d) {
+    const pl = planOf(d.id); if (!pl.wet && !pl.miss) return "";
+    return `<div class="blk" id="s-b"><h2>Plan B</h2>
+      <div class="go two">
+        ${pl.wet ? `<div><h4>If it rains</h4><ul class="plain">${pl.wet.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+        ${pl.miss ? `<div><h4>If a connection is missed</h4><p>${esc(pl.miss)}</p>${window.budgetHubRows && (window.budgetHubRows(d.id) || {}).rows && window.budgetHubRows(d.id).rows.length ? `<p class="sub">Separate tickets via a hub (the low-cost option in the budget) are riskier: the second airline won't wait or rebook you. Leave at least 3 hours, or stay a night in the hub.</p>` : ""}</div>` : ""}
+      </div></div>`;
+  }
+
   function renderDetail(d) {
     renderChips(d.id);
     const starred = d.eat.filter(e => e.stars);
@@ -248,13 +311,13 @@
           <small>${esc(d.region)}</small>
           <h1>${esc(d.name)}</h1>
           ${vibeFor(d.id) ? `<p class="hero-v">${esc(vibeFor(d.id))}</p>` : ""}
-          <div class="hero-f"><span>${nights(d)} nights</span><span>${d.weather.hi}° / ${d.weather.lo}°C</span><span>~${d.weather.rainDays} rainy days/mo</span><span>${starred.length} Michelin-starred</span><span>${d.budget}</span></div>
+          <div class="hero-f"><span>${nights(d)} nights</span><span>${d.weather.hi}° / ${d.weather.lo}°C</span><span>~${d.weather.rainDays} rainy days/mo</span><span>${starred.length} Michelin-starred</span><span>${d.budget}</span>${planOf(d.id).personal ? `<span>${esc(planOf(d.id).personal)}</span>` : ""}</div>
         </div>
       </header>
       <div class="strip">${d.photos.slice(1, 7).map(p => `<a href="${wikiUrl(p)}" target="_blank" rel="noopener"><img data-wiki="${esc(p)}" alt="${esc(pretty(p))}" loading="lazy"><span>${esc(pretty(p))}</span></a>`).join("")}<a class="strip-more" href="https://unsplash.com/s/photos/${d.unsplash}" target="_blank" rel="noopener">More photos ↗</a></div>
-      <p class="tagline lead">${esc(d.tagline)}</p>
-      <div class="d-head"><a class="btn dark" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>${rateWidget(d.id)}</div>
-      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-disc">Discover</a><a href="#s-route">Route</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
+      <p class="tagline lead">${esc(d.tagline)}</p>${planOf(d.id).down ? `<p class="catch"><b>The catch:</b> ${esc(planOf(d.id).down)}</p>` : ""}
+      <div class="d-head"><a class="btn dark" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>${rateWidget(d.id)}<button class="btn ${S.chosen === d.id ? "dark" : ""}" data-choose="${d.id}">${S.chosen === d.id ? "✓ Our trip · open plan" : "We're going here"}</button></div>
+      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-disc">Discover</a><a href="#s-route">Route</a><a href="#s-pace">Pace</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-go">Before you go</a><a href="#s-b">Plan B</a><a href="#s-pc">Pros & cons</a></nav>
 
       <div class="blk" id="s-see"><h2>Highlights: nature &amp; sights</h2>${highlightTiles(d.id)}</div>
 
@@ -265,6 +328,7 @@
         <ol class="days">${d.days.map(x => `<li><span class="dd">${esc(x.d)}</span><span class="tt">${esc(x.t)}</span></li>`).join("")}</ol>
       </div>
 
+      ${paceBlock(d)}
       ${transportBlock(d.id)}
       ${addonCards(d.id)}
 
@@ -299,6 +363,9 @@
         <div class="btns"><a class="btn dark" target="_blank" rel="noopener" href="${gflights("BOS", d)}">Google Flights from BOS ↗</a><a class="btn" target="_blank" rel="noopener" href="${gflights("BWI", d)}">from BWI ↗</a><a class="btn" target="_blank" rel="noopener" href="${gflights("IAD", d)}">from IAD ↗</a></div>
         ${hubTable(d.id)}
       </div>
+
+      ${goBlock(d)}
+      ${planBBlock(d)}
 
       <div class="blk" id="s-pc" style="border:0"><h2>Pros & cons</h2>
         <div class="pc"><div class="p"><h4>For</h4><ul>${d.pros.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div><div class="c"><h4>Against</h4><ul>${d.cons.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div></div>
@@ -344,6 +411,7 @@
   function score(d) {
     const w = S.weights; let num = 0, den = 0;
     CRIT.forEach(([k]) => { num += d.scores[k] * w[k]; den += 5 * w[k]; });
+    const wm = w.meaning ?? 2; num += meaning(d.id) * wm; den += 5 * wm;
     const base = den ? num / den * 70 : 0;
     const va = vote(d.id, "a"), vb = vote(d.id, "b");
     const votes = ((va || 0) + (vb || 0)) / 10 * 30;
@@ -353,23 +421,30 @@
     const rows = D.map(d => ({ d, s: status(d.id) === "out" ? -1 : score(d) })).sort((a, b) => b.s - a.s);
     $("#view-compare").innerHTML = `<div class="wrap">
       <div class="section-h"><h2>Side by side</h2><p>Rate each option out of 5, then set what matters. The ranking updates as you go.</p></div>
-      <div class="weights">${CRIT.map(([k, l]) => `<label>${l}<input type="range" min="0" max="3" step="1" value="${S.weights[k]}" data-w="${k}"><output>${S.weights[k]}</output></label>`).join("")}</div>
+      <div class="weights">${CRIT.map(([k, l]) => `<label>${l}<input type="range" min="0" max="3" step="1" value="${S.weights[k]}" data-w="${k}"><output>${S.weights[k]}</output></label>`).join("")}<label>Means something<input type="range" min="0" max="3" step="1" value="${S.weights.meaning ?? 2}" data-w="meaning"><output>${S.weights.meaning ?? 2}</output></label></div>
       <div class="cmp-scroll"><table class="cmp">
-        <tr><th>#</th><th>Option</th>${CRIT.map(([, l]) => `<th>${l}</th>`).join("")}<th>Your ratings</th><th>Score</th></tr>
+        <tr><th>#</th><th>Option</th>${CRIT.map(([, l]) => `<th>${l}</th>`).join("")}<th>Means something</th><th>Your ratings</th><th>Score</th></tr>
         ${rows.map(({ d, s }, i) => `<tr class="${status(d.id) === "out" ? "out" : ""}">
           <td class="rank">${s < 0 ? "—" : i + 1}</td>
           <td><div class="nm" data-go="#/d/${d.id}"><img data-wiki="${esc(d.hero)}" alt=""><div><b>${esc(d.name)}</b><small>${esc(d.region)}</small></div></div></td>
           ${CRIT.map(([k]) => `<td><div class="bar"><i style="width:${d.scores[k] * 12}px;background:${d.color}"></i><span>${d.scores[k]}</span></div></td>`).join("")}
+          <td><div class="dots mean" title="${esc(planOf(d.id).personal || "Set how much this place means to you")}">${[1, 2, 3, 4, 5].map(v => `<button data-mean="${d.id}|${v}" class="${meaning(d.id) >= v ? "on" : ""}">${v}</button>`).join("")}</div>${planOf(d.id).personal ? `<small class="mean-n">${esc(planOf(d.id).personal)}</small>` : ""}</td>
           <td>${rateWidget(d.id)}</td>
           <td class="total">${s < 0 ? "–" : s}</td></tr>`).join("")}
       </table></div>
+      <div class="section-h" style="margin-top:40px"><h2>Pace and travel time</h2><p>Fewer hotel changes and shorter travel days make a more restful week</p></div>
+      <div class="cmp-scroll"><table class="cmp wxc"><tr><th>Option</th><th>Hotel changes</th><th>On the move</th><th>Longest move</th><th>Days with no move</th><th>Door to door, Boston</th><th>Baltimore</th><th>The catch</th></tr>
+        ${D.map(d => { const p = window.budgetPace && window.budgetPace(d.id), d2 = planOf(d.id).d2d; if (!p) return "";
+          return `<tr><td><b>${esc(d.name)}</b></td><td>${p.moves}</td><td>${p.fmt(p.travelH)}</td><td>${p.longest ? p.fmt(p.longest) : "–"}</td><td>${p.still} of ${p.nights}</td><td>${d2 ? hrs(d2.BOS[0]) + " / " + hrs(d2.BOS[1]) : "–"}</td><td>${d2 ? hrs(d2.BWI[0]) + " / " + hrs(d2.BWI[1]) : "–"}</td><td class="catch-c">${esc(planOf(d.id).down || "")}</td></tr>`; }).join("")}
+      </table></div>
+      <p style="color:var(--mute);font-size:13px;margin-top:8px">Door to door = leaving home to the first hotel / the last hotel to home, out and back. The route follows the budget, add-ons included.</p>
       <div class="section-h" style="margin-top:40px"><h2>Weather odds</h2><p>Mid-March climate odds, not a forecast</p></div>
       <div class="cmp-scroll"><table class="cmp wxc"><tr><th>Option</th><th>Rain on a day</th><th>Sunny day</th><th>15°C+ day</th><th>Frost night</th><th>Windy day</th><th>Mostly dry trip*</th><th>Snow disruption</th></tr>
         ${D.map(d => [d, wxRows(d)]).filter(([, r]) => r).map(([d, r]) => { const w = r.rw;
           return `<tr><td><b>${esc(d.name)}</b></td><td>${pct(w.rain)}</td><td>${pct(w.sun)}</td><td>${pct(w.t15)}</td><td>${pct(w.frost)}</td><td>${pct(w.wind)}</td><td><b>${pct(w.dry)}</b></td><td>${pct(w.snowTrip)}</td></tr>`; }).join("")}
       </table></div>
       <p style="color:var(--mute);font-size:13px;margin-top:8px">*At most 2 rainy days in the trip (8 days for Europe, 9 for the US trips). Default stops; add-ons change the odds in the budget.</p>
-      <p style="color:var(--mute);font-size:13px;margin-top:14px">Score = 70% weighted criteria (my starting estimates, edit them in data.js) + 30% your two ratings + 5 for ★ shortlist.</p>
+      <p style="color:var(--mute);font-size:13px;margin-top:14px">Score = 70% weighted criteria (my starting estimates, plus your "means something" dots) + 30% your two ratings + 5 for ★ shortlist.</p>
     </div>`;
     hydrateImgs($("#view-compare"));
   }
@@ -445,6 +520,39 @@
       </div></div>${caseBlock()}</div>`;
   }
 
+
+  /* ---------------- our trip: the plan once you've chosen ---------------- */
+  function renderTrip() {
+    const el = $("#view-trip");
+    const d = byId[S.chosen];
+    if (!d) {
+      const short = D.filter(x => status(x.id) === "short");
+      const pool = short.length ? short : D.filter(x => status(x.id) !== "out");
+      el.innerHTML = `<div class="wrap"><div class="section-h"><h2>Our trip</h2><p>Nothing chosen yet. Once you've decided, pick it here or press "We're going here" on its page, and this becomes your plan: route, hotels, what to book and by when, and the day-by-day.</p></div>
+        <div class="trip-pick">${pool.map(x => `<button class="btn" data-choose="${x.id}">${esc(x.name)}</button>`).join("")}</div></div>`;
+      return;
+    }
+    const r = window.budgetRoute ? window.budgetRoute(d.id) : null;
+    const pl = planOf(d.id);
+    const usd = n => "$" + Math.round(n).toLocaleString("en-US");
+    el.innerHTML = `<div class="wrap trip">
+      <div class="section-h"><h2>Our trip: ${esc(d.name)}</h2><p>12–21 March 2027${pl.personal ? " · " + esc(pl.personal) : ""}</p></div>
+      <div class="btns noprint"><a class="btn" href="#/d/${d.id}">Option page</a><a class="btn" href="#/budget/${d.id}">Change route or hotels</a><button class="btn" onclick="print()">Print</button><button class="btn" data-choose="">Undo choice</button></div>
+      ${r ? `<div class="blk"><h2>Route and hotels</h2>
+        <table class="legs"><tr><th>Stop</th><th>Nights</th><th>Hotel</th><th>Per night</th></tr>
+        ${r.legs.map(l => `<tr><td>${esc(l.name)}</td><td>${l.n}</td><td>${esc(l.hotel)}</td><td>${usd(l.price)}</td></tr>`).join("")}</table>
+        ${r.segs.length ? `<p class="sub" style="margin-top:10px">Moves: ${r.segs.map(s => `${esc(s.from)} → ${esc(s.to)} (${esc(s.mode)}, ${esc(s.time)})`).join(" · ")}${r.car ? ` · car for ${r.car} days` : ""}</p>` : ""}
+        ${r.dinners.length ? `<p class="sub">Starred dinners: ${r.dinners.map(esc).join(", ")}</p>` : ""}
+        <p class="trip-tot">About <b>${usd(r.total)}</b> for two, everything included.</p>
+        ${paceTiles(d.id)}
+      </div>` : ""}
+      ${goBlock(d, true)}
+      <div class="blk"><h2>Day by day</h2><ol class="days">${d.days.map(x => `<li><span class="dd">${esc(x.d)}</span><span class="tt">${esc(x.t)}</span></li>`).join("")}</ol>
+        ${r && r.legs.length !== d.stops.filter(s => s.nights).length ? `<p class="sub">This is the standard route. Your budget route has different stops, so shift the days to match.</p>` : ""}</div>
+      ${planBBlock(d)}
+    </div>`;
+  }
+
   /* ---------------- router ---------------- */
   function go(h) { if (location.hash === h) route(); else location.hash = h; }
   /* smooth scroll, with an instant fallback where smooth scrolling is ignored */
@@ -471,7 +579,7 @@
     if (!h.startsWith("/")) { const el = document.getElementById(h); if (el) el.scrollIntoView(); return; } // a stray section anchor: stay put
     const [, a, b] = h.split("/");
     let view = "explore";
-    if (["compare", "flights", "notes", "budget"].includes(a)) view = a;
+    if (["compare", "flights", "notes", "budget", "trip"].includes(a)) view = a;
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "view-" + view));
     document.body.dataset.view = view === "explore" && a === "d" ? "detail" : view;
     applyTheme(view === "explore" && a === "d" ? b : view === "budget" ? (window.APP.S.budget && window.APP.S.budget.it) || String(b || "").split("+")[0] : null);
@@ -483,6 +591,7 @@
       setTimeout(() => map.invalidateSize(), 50);
     } else if (view === "compare") renderCompare();
     else if (view === "flights") renderFlights();
+    else if (view === "trip") renderTrip();
     else if (view === "budget") { window.renderBudget(b); applyTheme(window.APP.S.budget.it); }
     else renderNotes();
     $("#sf-where").textContent = `${D.filter(d => status(d.id) !== "out").length} options`;
@@ -504,6 +613,10 @@
     if (df) { df.parentElement.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === df)); filterDiscover(); return; }
     const v = e.target.closest("[data-vote]");
     if (v) { e.stopPropagation(); const [id, who, n] = v.dataset.vote.split("|"); setVote(id, who, +n); const wrap = v.closest(".rate"); wrap.outerHTML = rateWidget(id); if ($("#view-compare").classList.contains("on")) renderCompare(); return; }
+    const mn = e.target.closest("[data-mean]");
+    if (mn) { const [id, n] = mn.dataset.mean.split("|"); S.meaning = S.meaning || {}; S.meaning[id] = meaning(id) === +n ? 0 : +n; save(); renderCompare(); return; }
+    const ch = e.target.closest("[data-choose]");
+    if (ch) { const id = ch.dataset.choose; if (id && S.chosen === id && !$("#view-trip").classList.contains("on")) { go("#/trip"); return; } S.chosen = id || null; save(); toast(id ? "Saved as our trip" : "Choice cleared"); go("#/trip"); return; }
     const nav = e.target.closest("#nav button"); if (nav) { go(nav.dataset.view === "explore" ? "#/" : "#/" + nav.dataset.view); return; }
     const st = e.target.closest("[data-stop]"); if (st && markers[st.dataset.stop]) { const m = markers[st.dataset.stop]; map.flyTo(m.getLatLng(), 12, { duration: .6 }); m.openPopup(); return; }
     if (e.target.closest("select")) return;
@@ -516,6 +629,7 @@
   });
   document.addEventListener("change", e => {
     if (e.target.dataset.w) { renderCompare(); return; }
+    if (e.target.dataset.done) { S.done = S.done || {}; S.done[e.target.dataset.done] = e.target.checked; save(); return; }
     if (e.target.dataset.status) { S.status[e.target.dataset.status] = e.target.value; save(); if ($("#view-compare").classList.contains("on")) renderCompare(); }
   });
   document.addEventListener("input", e => {

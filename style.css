@@ -592,3 +592,48 @@ a.back{color:var(--accent)}
   .dfil .bseg{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}
   .dfil .bseg button{white-space:nowrap}
 }
+
+/* ---------- planning: pace, before you go, plan B, trip ---------- */
+.sub{color:var(--mute);font-size:14px;margin:0 0 12px;max-width:720px}
+.catch{max-width:760px;color:var(--ink2);margin:-6px 0 18px;font-size:15px}
+.catch b{color:var(--ink)}
+.pace{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pace div{background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.pace b{font-size:22px;font-family:var(--display,inherit);font-weight:400}
+.pace small{color:var(--ink2);font-size:13px}
+.pace em{color:var(--mute);font-size:12px;font-style:normal}
+.go{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.go.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.go h4{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 8px;font-weight:600}
+.go p{color:var(--ink2);margin:0 0 8px}
+.dl{list-style:none;margin:0;padding:0}
+.dl li{padding:8px 0;border-top:1px solid var(--line);font-size:14px;color:var(--ink2)}
+.dl li:first-child{border-top:0}
+.dl li>span,.dl label>span{display:block}
+.dl .when{font-weight:600;color:var(--ink);font-size:13px}
+.dl label{display:grid;grid-template-columns:22px 1fr;column-gap:6px;cursor:pointer}
+.dl label input{grid-row:span 2;margin-top:3px;accent-color:var(--accent,#141414)}
+.dl label input:checked~span{text-decoration:line-through;color:var(--mute)}
+.plain{margin:0 0 10px;padding-left:18px;color:var(--ink2);font-size:14px}
+.plain li{padding:3px 0}
+.en{margin:8px 0 2px!important;font-size:14px}
+.mean{display:flex;gap:3px}
+.mean-n{display:block;color:var(--mute);font-size:11px;margin-top:4px;max-width:140px}
+.catch-c{min-width:240px;color:var(--ink2);font-size:13px}
+.trip-pick{display:flex;flex-wrap:wrap;gap:8px}
+.trip-tot{margin:14px 0;font-size:16px}
+.trip .btns{margin:0 0 8px}
+@media (max-width:760px){
+  .pace{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .go,.go.two{grid-template-columns:minmax(0,1fr);gap:18px}
+  #nav{overflow-x:auto;max-width:100%;scrollbar-width:none}
+  #nav::-webkit-scrollbar{display:none}
+}
+@media print{
+  .top,.noprint,#chips,#mtot,.toast{display:none!important}
+  .view{display:none!important}
+  #view-trip{display:block!important}
+  body{background:#fff}
+  .blk{break-inside:avoid}
+}
+@media (max-width:420px){#nav{gap:0}#nav button{padding:7px 6px;font-size:13px}}

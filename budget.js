@@ -483,4 +483,18 @@
 
   window.renderBudget = render;
   window.budgetQuick = id => IT[id] ? compute(IT[id]).total : null;
+  /* pace of the route as currently set up in the budget: hotel changes, hours on the move, days with no move */
+  window.budgetPace = id => {
+    const it = IT[id]; if (!it) return null;
+    const L = legs(it), segs = segments(it, L), nights = L.reduce((a, l) => a + l.n, 0);
+    const moves = Math.max(0, L.length - 1), travelH = segs.reduce((a, s) => a + s.o[1], 0);
+    return { nights, moves, stops: L.length, travelH, longest: segs.reduce((m, s) => Math.max(m, s.o[1]), 0), still: Math.max(0, nights - moves), fmt: fmtH };
+  };
+  /* the route as set in the budget, for the trip page */
+  window.budgetRoute = id => {
+    const it = IT[id]; if (!it) return null;
+    const c = compute(it);
+    return { total: c.total, parts: c.parts, dinners: c.dinners, legs: c.L.map(l => { const h = B.bases[l.id].hotels[hotelIdx(l.id)]; return { id: l.id, name: B.bases[l.id].name, n: l.n, hotel: h ? h[0] : "", price: hotelPrice(l.id) }; }),
+      segs: c.segs.map(s => ({ from: B.bases[s.a].name, to: B.bases[s.z].name, mode: MODE[s.o[0]], time: fmtH(s.o[1]) })), car: carOn(it) ? carDays(it) : 0 };
+  };
 })();
