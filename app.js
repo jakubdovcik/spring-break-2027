@@ -141,7 +141,7 @@
       <div class="section-h" style="margin-top:40px"><h2>Ones we hadn't considered</h2><p>Mid-March, Boston-friendly</p></div>
       <div class="grid">${wild.map(card).join("")}</div>
       <div class="section-h" style="margin-top:40px"><h2>Mix &amp; match</h2><p>Half and half, priced in the budget builder</p></div>
-      <div class="combos">${window.BUDGET.itineraries.filter(i => i.kind === "combo").map(i => `<a class="combo" href="#/budget/${i.id}"><span class="itc-bar" style="background:${i.color}"></span><b>${esc(i.name)}</b><small>${i.legs.map(l => window.BUDGET.bases[l[0]].name.split(" ·")[0] + " " + l[1] + "n").join(" → ")}</small><p>${esc(i.why || "")}</p><span class="combo-p">≈ $${Math.round(window.budgetQuick(i.id) / 100) / 10}k for two →</span></a>`).join("")}</div>
+      <div class="combos">${window.BUDGET.itineraries.filter(i => i.kind === "combo").map(i => `<a class="combo" href="#/budget/${i.id}"><b>${esc(i.name)}</b><small>${i.legs.map(l => window.BUDGET.bases[l[0]].name.split(" ·")[0] + " " + l[1] + "n").join(" → ")}</small>${window.nightsGlyph(i.legs.map(l => l[1]))}<p>${esc(i.why || "")}</p><span class="combo-p">≈ $${Math.round(window.budgetQuick(i.id) / 100) / 10}k for two →</span></a>`).join("")}</div>
       ${out.length ? `<div class="section-h" style="margin-top:40px"><h2>Ruled out</h2><p>${out.map(d => `<a href="#/d/${d.id}">${esc(d.name)}</a>`).join(" · ")}</p></div>` : ""}`;
     hydrateImgs($("#list"));
     drawAll();
