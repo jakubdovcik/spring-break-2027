@@ -22,6 +22,7 @@
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   const vote = (id, who) => (S.votes[id] || {})[who] || 0;
   const setVote = (id, who, v) => { S.votes[id] = S.votes[id] || {}; S.votes[id][who] = S.votes[id][who] === v ? 0 : v; save(); };
+  window.APP = { get S() { return S; }, save, esc, toast: m => toast(m) };
   const status = id => S.status[id] || (byId[id].wildcard ? "maybe" : "in");
 
   function toast(msg) { const t = $("#toast") || Object.assign(document.body.appendChild(document.createElement("div")), { id: "toast", className: "toast" }); t.textContent = msg; t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 1800); }
@@ -139,6 +140,8 @@
       <div class="grid">${main.map(card).join("")}</div>
       <div class="section-h" style="margin-top:40px"><h2>Ones we hadn't considered</h2><p>Mid-March, Boston-friendly</p></div>
       <div class="grid">${wild.map(card).join("")}</div>
+      <div class="section-h" style="margin-top:40px"><h2>Mix &amp; match</h2><p>Half and half, priced in the budget builder</p></div>
+      <div class="combos">${window.BUDGET.itineraries.filter(i => i.kind === "combo").map(i => `<a class="combo" href="#/budget/${i.id}"><span class="itc-bar" style="background:${i.color}"></span><b>${esc(i.name)}</b><small>${i.legs.map(l => window.BUDGET.bases[l[0]].name.split(" ·")[0] + " " + l[1] + "n").join(" → ")}</small><p>${esc(i.why || "")}</p><span class="combo-p">≈ $${Math.round(window.budgetQuick(i.id) / 100) / 10}k for two →</span></a>`).join("")}</div>
       ${out.length ? `<div class="section-h" style="margin-top:40px"><h2>Ruled out</h2><p>${out.map(d => `<a href="#/d/${d.id}">${esc(d.name)}</a>`).join(" · ")}</p></div>` : ""}`;
     hydrateImgs($("#list"));
     drawAll();
@@ -156,6 +159,7 @@
       <div class="d-head"><div><h1>${esc(d.name)}</h1><div class="sub">${esc(d.region)}</div></div>${rateWidget(d.id)}</div>
       <div class="facts"><span><b>${nights(d)}</b> nights</span><span><b>${d.stops.filter(s => s.nights).length}</b> bases</span><span><b>${d.weather.hi}° / ${d.weather.lo}°C</b></span><span><b>~${d.weather.rainDays}</b> rainy days/mo</span><span><b>${starred.length}</b> Michelin-starred</span><span><b>${d.budget}</b></span></div>
       <p class="tagline">${esc(d.tagline)}</p>
+      <a class="btn dark" style="margin:-4px 0 18px" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>
       <nav class="subnav"><a href="#s-route">Route</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
 
       <div class="blk" id="s-route"><h2>Route sketch</h2>
@@ -270,7 +274,7 @@
     const h = location.hash.replace(/^#/, "") || "/";
     const [, a, b] = h.split("/");
     let view = "explore";
-    if (a === "compare" || a === "flights" || a === "notes") view = a;
+    if (["compare", "flights", "notes", "budget"].includes(a)) view = a;
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "view-" + view));
     document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x.dataset.view === view));
     $("#chips").style.display = view === "explore" ? "" : "none";
@@ -280,6 +284,7 @@
       setTimeout(() => map.invalidateSize(), 50);
     } else if (view === "compare") renderCompare();
     else if (view === "flights") renderFlights();
+    else if (view === "budget") window.renderBudget(b);
     else renderNotes();
     $("#sf-where").textContent = `${D.filter(d => status(d.id) !== "out").length} options`;
   }
