@@ -190,13 +190,13 @@ window.TRIP = {
       region: "Aix-en-Provence · Luberon · Cassis",
       proposedBy: "Her",
       color: "#B5651D",
-      tagline: "Her old Aix: market mornings, plane-tree squares, then hill villages and the calanques.",
+      tagline: "Elizabeth's old Aix: market mornings, plane-tree squares, then hill villages and the calanques.",
       hero: "Aix-en-Provence",
       unsplash: "provence",
       weather: { hi: 16, lo: 5, rainDays: 5, daylight: "11h 55m", sea: 13, summary: "Sunny and bright, almond blossom out. Cool mornings, and the mistral wind can bite." },
       scores: { relax: 5, food: 4, cozy: 4, weather: 4, ease: 4 },
       budget: "€€€",
-      pros: ["Sunniest and driest option", "Familiar to her, so she can show you her Aix", "TGV straight from the Paris airport, no extra flight"],
+      pros: ["Sunniest and driest option", "Familiar to Elizabeth, so she can show Kubs her Aix", "TGV straight from the Paris airport, no extra flight"],
       cons: ["Some Luberon hotels and restaurants only reopen in late March", "The mistral can be cold", "Markets are quieter than in summer"],
       stops: [
         { name: "Aix-en-Provence", lat: 43.5297, lng: 5.4474, nights: 3, wiki: "Aix-en-Provence", desc: "Cours Mirabeau, the markets, Cézanne's studio." },
@@ -209,7 +209,7 @@ window.TRIP = {
       days: [
         { d: "Fri 12", t: "Overnight flight: BOS → Paris CDG (Air France / Delta)." },
         { d: "Sat 13", t: "TGV from the CDG airport station straight to Aix TGV (~3 h 20). Market on Place Richelme, a nap, aperitif on Cours Mirabeau." },
-        { d: "Sun 14", t: "She gives the tour: her old streets, Les Deux Garçons, calissons, the Mazarin quarter." },
+        { d: "Sun 14", t: "Elizabeth gives the tour: her old streets, Les Deux Garçons, calissons, the Mazarin quarter." },
         { d: "Mon 15", t: "Atelier Cézanne and the Terrain des Peintres viewpoint over Sainte-Victoire. Lunch at Le Saint-Estève." },
         { d: "Tue 16", t: "Pick up the car. Lourmarin, Bonnieux, check in to a Luberon bastide. Pool (heated) or fire." },
         { d: "Wed 17", t: "Gordes and Sénanque Abbey in the morning, Roussillon ochre path in the afternoon. Back for a long dinner." },
@@ -358,7 +358,7 @@ window.TRIP = {
       weather: { hi: 22, lo: 10, rainDays: 6, daylight: "11h 55m", sea: 16, summary: "Warm and sunny. Azahar (orange blossom) scents the whole city." },
       scores: { relax: 4, food: 4, cozy: 3, weather: 5, ease: 3 },
       budget: "€€€",
-      pros: ["Best weather of all six", "Spanish food for him, slow patios for her", "AVE high-speed trains link everything"],
+      pros: ["Best weather in Europe on this list", "Spanish food for Kubs, slow patios for Elizabeth", "AVE high-speed trains link everything"],
       cons: ["Connect via Madrid", "Seville gets busy as Holy Week (from 21 Mar) approaches"],
       stops: [
         { name: "Seville", lat: 37.3891, lng: -5.9845, nights: 4, wiki: "Seville", desc: "Alcázar, Santa Cruz, tapas." },

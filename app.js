@@ -7,7 +7,7 @@
 
   /* ---------------- state (localStorage + share link) ---------------- */
   const KEY = "sb27-state-v1";
-  const blank = () => ({ votes: {}, status: {}, weights: { relax: 3, food: 2, cozy: 2, weather: 1, ease: 1 }, notes: "", names: { a: "Him", b: "Her" } });
+  const blank = () => ({ votes: {}, status: {}, weights: { relax: 3, food: 2, cozy: 2, weather: 1, ease: 1 }, notes: "", names: { a: "Kubs", b: "Elizabeth" } });
   let S = blank();
   try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
   const params = new URLSearchParams(location.search);
@@ -19,6 +19,8 @@
       setTimeout(() => toast("Loaded the shared picks"), 300);
     } catch (e) {}
   }
+  if (S.names.a === "Him") S.names.a = "Kubs"; // older saved defaults
+  if (S.names.b === "Her") S.names.b = "Elizabeth";
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   const vote = (id, who) => (S.votes[id] || {})[who] || 0;
   const setVote = (id, who, v) => { S.votes[id] = S.votes[id] || {}; S.votes[id][who] = S.votes[id][who] === v ? 0 : v; save(); };
@@ -61,8 +63,9 @@
   $("#countdown").innerHTML = days > 0 ? `<b>${days}</b> days to go` : "Bon voyage";
 
   /* ---------------- map ---------------- */
-  const map = L.map("map", { zoomControl: false, scrollWheelZoom: false, attributionControl: true }).setView([45, -2], 4);
-  map.on("click", () => map.scrollWheelZoom.enable()); map.on("mouseout", () => map.scrollWheelZoom.disable());
+  const touch = L.Browser.mobile;
+  const map = L.map("map", { zoomControl: false, scrollWheelZoom: false, dragging: !touch, attributionControl: true }).setView([45, -2], 4);
+  map.on("click", () => { map.scrollWheelZoom.enable(); map.dragging.enable(); }); map.on("mouseout", () => map.scrollWheelZoom.disable());
   L.control.zoom({ position: "bottomright" }).addTo(map);
   const esri = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
   L.tileLayer(esri + "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, attribution: "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors" }).addTo(map);
@@ -202,7 +205,7 @@
       <a class="back" href="#/">← All options</a>
       <div class="gallery">${ph.map(p => `<a href="${wikiUrl(p)}" target="_blank" rel="noopener"><img data-wiki="${esc(p)}" alt="${esc(pretty(p))}" loading="lazy"><span>${esc(pretty(p))}</span></a>`).join("")}</div>
       <a class="more-photos" href="https://unsplash.com/s/photos/${d.unsplash}" target="_blank" rel="noopener">More photos ↗</a>
-      <div class="d-head"><div><h1>${esc(d.name)}</h1><div class="sub">${esc(d.region)}</div></div>${rateWidget(d.id)}</div>
+      <div class="d-head"><div><h1>${esc(d.name)}</h1><div class="sub">${esc(d.region)}</div>${vibeFor(d.id) ? `<div class="vibe">${esc(vibeFor(d.id))}</div>` : ""}</div>${rateWidget(d.id)}</div>
       <div class="facts"><span><b>${nights(d)}</b> nights</span><span><b>${d.stops.filter(s => s.nights).length}</b> bases</span><span><b>${d.weather.hi}° / ${d.weather.lo}°C</b></span><span><b>~${d.weather.rainDays}</b> rainy days/mo</span><span><b>${starred.length}</b> Michelin-starred</span><span><b>${d.budget}</b></span></div>
       <p class="tagline">${esc(d.tagline)}</p>
       <a class="btn dark" style="margin:-4px 0 18px" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>
@@ -395,12 +398,26 @@
 
   /* ---------------- router ---------------- */
   function go(h) { if (location.hash === h) route(); else location.hash = h; }
+  /* ---------------- per-option theme ---------------- */
+  function applyTheme(id) {
+    const T = window.THEMES || {}, key = (window.THEME_FOR || {})[id] || id, t = T[key], r = document.documentElement;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!t) { ["--accent", "--tint", "--display"].forEach(p => r.style.removeProperty(p)); delete r.dataset.theme; if (meta) meta.content = "#ffffff"; return; }
+    r.style.setProperty("--accent", t.accent); r.style.setProperty("--tint", t.tint); r.style.setProperty("--display", t.font);
+    r.dataset.theme = key; if (meta) meta.content = t.tint;
+  }
+  window.applyTheme = applyTheme;
+  const vibeFor = id => { const T = window.THEMES || {}, t = T[(window.THEME_FOR || {})[id] || id]; return t ? t.vibe : ""; };
+  window.vibeFor = vibeFor;
+
   function route() {
     const h = location.hash.replace(/^#/, "") || "/";
     const [, a, b] = h.split("/");
     let view = "explore";
     if (["compare", "flights", "notes", "budget"].includes(a)) view = a;
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "view-" + view));
+    document.body.dataset.view = view === "explore" && a === "d" ? "detail" : view;
+    applyTheme(view === "explore" && a === "d" ? b : view === "budget" ? (window.APP.S.budget && window.APP.S.budget.it) || String(b || "").split("+")[0] : null);
     document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x.dataset.view === view));
     $("#chips").style.display = view === "explore" ? "" : "none";
     if (view === "explore") {
@@ -409,7 +426,7 @@
       setTimeout(() => map.invalidateSize(), 50);
     } else if (view === "compare") renderCompare();
     else if (view === "flights") renderFlights();
-    else if (view === "budget") window.renderBudget(b);
+    else if (view === "budget") { window.renderBudget(b); applyTheme(window.APP.S.budget.it); }
     else renderNotes();
     $("#sf-where").textContent = `${D.filter(d => status(d.id) !== "out").length} options`;
   }
@@ -436,7 +453,7 @@
   document.addEventListener("input", e => {
     if (e.target.dataset.w) { S.weights[e.target.dataset.w] = +e.target.value; e.target.nextElementSibling.textContent = e.target.value; save(); }
     if (e.target.id === "notes") { S.notes = e.target.value; save(); }
-    if (e.target.dataset.name) { S.names[e.target.dataset.name] = e.target.value || (e.target.dataset.name === "a" ? "Him" : "Her"); save(); }
+    if (e.target.dataset.name) { S.names[e.target.dataset.name] = e.target.value || (e.target.dataset.name === "a" ? "Kubs" : "Elizabeth"); save(); }
   });
 
   route();

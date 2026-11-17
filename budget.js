@@ -206,8 +206,10 @@
       <div class="section-h"><h2>Budget builder</h2><p>Rough ballpark for two, in USD. Pick a route, then tune anything.</p></div>
       <div id="b-its"></div>
       <div class="bgrid"><div id="b-build"></div><aside class="bsum"><div id="b-sum"></div><div id="bmap"></div></aside></div>
+      <div class="mtot" id="mtot"></div>
     </div>`;
-    bmap = L.map("bmap", { zoomControl: false, scrollWheelZoom: false, attributionControl: false });
+    bmap = L.map("bmap", { zoomControl: false, scrollWheelZoom: false, dragging: !L.Browser.mobile, attributionControl: false });
+    bmap.on("click", () => bmap.dragging.enable());
     const esri = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
     L.tileLayer(esri + "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16 }).addTo(bmap);
     L.tileLayer(esri + "World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16 }).addTo(bmap);
@@ -245,6 +247,7 @@
         <span class="itc-p">≈ ${k(compute(it).total)}</span></button>`;
     $("#b-its").innerHTML = `<h4 class="bh">Single region</h4><div class="its">${B.itineraries.filter(i => i.kind === "single").map(card).join("")}</div>
       <h4 class="bh">Mix &amp; match</h4><div class="its">${B.itineraries.filter(i => i.kind === "combo").map(card).join("")}</div>`;
+    const on = $("#b-its .itc.on"); if (on) on.parentElement.scrollLeft = on.offsetLeft - on.parentElement.offsetLeft - 16;
   }
 
   /* ---------------- nature & sights ---------------- */
@@ -316,7 +319,7 @@
     };
     const cityOpts = cur => `<option value="">None</option>` + B.bookendCities.map(cid => `<option value="${cid}" ${cur === cid ? "selected" : ""}>${B.bases[cid].name}${it.hubs.includes(cid) ? " (on your way)" : " (+ extra hop)"}</option>`).join("");
     $("#b-build").innerHTML = `
-      <div class="bblk"><h3>${esc(it.name)}</h3><p class="bnote">${esc(it.how)}${it.why ? " " + esc(it.why) : ""}</p>
+      <div class="bblk"><h3 class="rt">${esc(it.name)}</h3>${window.vibeFor && window.vibeFor(it.id) ? `<div class="vibe">${esc(window.vibeFor(it.id))}</div>` : ""}<p class="bnote">${esc(it.how)}${it.why ? " " + esc(it.why) : ""}</p>
         ${addons(it)}
         ${highlights(c.L)}
         ${c.L.map(legRow).join("")}
@@ -385,6 +388,8 @@
     const target = tgt(it), ok = c.nights === target, ext = b.len === "extend" && c.nights > target;
     const arrive = new Date(2027, 2, target === 9 ? 12 : 13), home = new Date(arrive); home.setDate(home.getDate() + c.nights);
     const fmtD = d => d.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+    const mt = $("#mtot");
+    if (mt) mt.innerHTML = `<div><b>${usd(c.total)}</b><span>for two · ${c.nights} nights · ${esc(it.name)}</span></div><button data-jump="1">Breakdown</button>`;
     $("#b-sum").innerHTML = `
       <div class="tot"><small>Estimated total for two</small><b>${usd(c.total)}</b><span>Likely range ${k(c.low)} – ${k(c.high)} · ${usd(c.total / 2)} per person · ${usd(c.total / Math.max(1, c.nights))} per night</span></div>
       <div class="stack">${CATS.map(([key, , col]) => `<i style="width:${c.parts[key] / c.total * 100}%;background:${col}"></i>`).join("")}</div>
@@ -402,13 +407,14 @@
     if (IT[iid]) { st().it = iid; if (add) st().ex[iid + "|" + add] = true; save(); }
     renderIts(); renderBuild(); renderSum(); drawMap(); window.APP.hydrate($("#b-build"));
   }
-  const full = () => { save(); renderIts(); renderBuild(); renderSum(); drawMap(); window.APP.hydrate($("#b-build")); };
+  const full = () => { save(); renderIts(); renderBuild(); renderSum(); drawMap(); window.APP.hydrate($("#b-build")); if (window.applyTheme) window.applyTheme(st().it); };
   const light = () => { save(); renderIts(); renderSum(); };
 
   /* ---------------- events ---------------- */
   const LIM = { bags: [0, 6], nice: [0, 8], spaN: [0, 6], tours: [0, 8], carDays: [1, 9] };
   document.addEventListener("click", e => {
     if (!e.target.closest("#view-budget")) return;
+    if (e.target.closest("[data-jump]")) { $("#b-sum").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
     const b = st(), it = IT[b.it];
     const x = e.target.closest("[data-it],[data-n],[data-x],[data-xn],[data-sg],[data-dine],[data-set],[data-inc],[data-reset]");
     if (!x) return;

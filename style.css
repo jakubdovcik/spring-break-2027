@@ -1,4 +1,5 @@
 :root{
+  --accent:#141414; --tint:#ffffff; --display:Inter,system-ui,-apple-system,sans-serif;
   --ink:#141414; --ink2:#4a4a4a; --mute:#8a8a8a; --line:#e9e9e9; --soft:#f6f6f4;
   --bg:#ffffff; --pos:#1F6F5C; --r:14px;
 }
@@ -410,3 +411,61 @@ a.xo{text-decoration:none}
 
 @media (max-width:720px){.section-h{flex-direction:column;align-items:flex-start;gap:4px}}
 @media (max-width:720px){#view-flights .wrap>table.legs{display:block;overflow-x:auto}}
+
+/* ---------------- per-option theme ---------------- */
+html,body{background:var(--tint);transition:background .4s}
+.top,.subnav{background:var(--tint);transition:background .4s}
+.d-head h1,.case-h h2,.section-h h2,.blk h2,h3.rt{font-family:var(--display);letter-spacing:-.005em}
+[data-theme="provence"] .d-head h1,[data-theme="andalusia"] .d-head h1,[data-theme="provence"] h3.rt,[data-theme="andalusia"] h3.rt{font-weight:700;font-size:34px}
+.d-head h1{font-weight:400}
+h3.rt{font-size:24px;font-weight:400}
+.vibe{margin-top:6px;font-size:13px;color:var(--accent);letter-spacing:.01em}
+.seg button.on,.chip.on,.btn.dark,.itc.on,.bseg button.on,.dn.on,.mtot button{background:var(--accent);border-color:var(--accent);color:#fff}
+.itc.on small{color:rgba(255,255,255,.75)}
+.pr-b i{background:var(--accent)}
+.xo.on{border-color:var(--accent)}
+.case{border-color:var(--accent)}
+.stop .n,.leg-h .n{background:var(--accent)}
+.sv.nature:before{background:var(--accent)}
+a.back{color:var(--accent)}
+
+/* ---------------- phone ---------------- */
+.mtot{display:none}
+@media (max-width:980px){
+  .mtot{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:1500;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+  .mtot b{display:block;font-size:20px;letter-spacing:-.02em}
+  .mtot span{display:block;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+  .mtot button{border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600}
+  #view-budget{padding-bottom:84px}
+  .bsum{order:0}
+}
+@media (max-width:720px){
+  body:not([data-view="explore"]) .search{display:none}
+  .mapwrap{height:260px}
+  input,select,textarea{font-size:16px !important}           /* stops iOS zooming into fields */
+  .dots button{width:30px;height:30px;font-size:12px}
+  .step button{width:34px;height:34px}
+  .bseg button{padding:8px 12px}
+  .seg button{padding:8px 9px}
+  .d-head h1{font-size:30px}
+  h3.rt{font-size:22px}
+  .tagline{font-size:16px}
+  .gallery{grid-template-rows:220px 110px}
+  .chips{padding:10px 16px}
+  .its{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .itc{padding:12px}
+  .xs{grid-template-columns:1fr}
+  .hl-h{align-items:flex-start;flex-direction:column}
+  .brow>span{width:auto;min-width:72px}
+  .wx{grid-template-columns:repeat(2,1fr)}
+  .stays{grid-template-columns:1fr}
+  .sg-o{grid-template-columns:auto auto 1fr}
+  .weights{gap:10px 18px}
+  .weights input{width:90px}
+  .foot{padding-bottom:calc(36px + env(safe-area-inset-bottom))}
+}
+@media (max-width:720px){
+  .its{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:0 -16px 18px;padding:2px 16px 6px;scrollbar-width:none}
+  .its::-webkit-scrollbar{display:none}
+  .itc{flex:0 0 68%;scroll-snap-align:start}
+}

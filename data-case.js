@@ -15,12 +15,12 @@ window.CASE = {
       ["Nature without effort", "Drive-up views of the Lakes of Covadonga under the snow-capped Picos, Gaztelugatxe's island chapel, the Zumaia cliffs, and a beach in a meadow at Gulpiyuri. Dramatic scenery from a car seat or a short walk."],
       ["Your money goes further", "Euros plus Spanish prices: excellent hotels for €200–300 and three-course lunch menus for €20–30. With the same middle-of-the-road settings, it comes out cheaper than both Scotland and Provence (see the table)."],
       ["Simple to get to, on our airlines", "Delta or KLM to Amsterdam, then KLM straight to Bilbao. Inside Spain the drives are short and the motorway follows the coast."],
-      ["New for both of us, and it keeps her options open", "She already knows Aix. This would be a place we discover together. There's also room for her side: Biarritz and Saint-Jean-de-Luz in the French Basque Country are 30 minutes from San Sebastián, and 'Provence → San Sebastián' is ready in the budget if we want both."]
+      ["New for both of us, and it keeps Elizabeth's options open", "Elizabeth already knows Aix. This would be a place we discover together. There's also room for her picks: Biarritz and Saint-Jean-de-Luz in the French Basque Country are 30 minutes from San Sebastián, and 'Provence → San Sebastián' is ready in the budget if we want both."]
     ],
     objections: [
       ["“It'll rain.”", "Some showers, yes, but at 16°C rather than Scotland's 9°C. Rain here means a long lunch, a spa, or the Guggenheim, all of which are on the plan anyway."],
       ["“It's a food trip, not a rest.”", "One reservation a day at most. The rest is beaches, slow walks and early nights, and the big dinners are all optional in the budget."],
-      ["“I wanted somewhere I know.”", "Add a night in Biarritz for French cafés and pastries, or pick the Provence → San Sebastián combo: her Aix first, then the Basque coast."]
+      ["“I wanted somewhere I know.”", "Add a night in Biarritz for French cafés and pastries, or pick the Provence → San Sebastián combo: Elizabeth's Aix first, then the Basque coast."]
     ]
   }
 };
