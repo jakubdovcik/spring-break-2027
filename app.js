@@ -259,18 +259,18 @@
   }
 
   /* ---------------- weather odds ---------------- */
-  const pct = p => p <= 0 ? "~0%" : p < .02 ? "<2%" : Math.round(p * 100) + "%";
+  const pct = p => p <= 0 ? "~0%" : p < .02 ? "<2%" : p > .98 && p < 1 ? ">98%" : Math.round(p * 100) + "%";
   const tripDays = d => d.domestic ? 9 : 8;
   // chance of at least k dry days out of n, treating days as independent (real weather comes in spells, so reality is more spread out)
   function atLeast(k, n, p) { let s = 0; for (let i = k; i <= n; i++) { let c = 1; for (let j = 0; j < i; j++) c = c * (n - j) / (j + 1); s += c * p ** i * (1 - p) ** (n - i); } return s; }
   function wxRows(d) {
-    const w = window.WX && window.WX[d.id]; if (!w) return null;
-    const n = tripDays(d), dry = 1 - w.rain;
+    const rw = window.routeWeather && window.routeWeather(d.id); if (!rw) return null;
+    const w = (window.WX && window.WX[d.id]) || { note: "", windName: "strong wind" }, n = rw.n;
     return {
-      w, n,
-      daily: [["Rain on a given day", w.rain, "at least 1 mm"], ["Mostly sunny day", w.sun, ""], ["Afternoon 15°C / 59°F or warmer", w.t15, ""], ["Afternoon 20°C / 68°F or warmer", w.t20, ""], ["Frost overnight", w.frost, "somewhere on the route"], [`Strong-wind day (${w.windName})`, w.wind, ""]],
-      trip: [[`At least ${n - 2} of ${n} days mostly dry`, atLeast(n - 2, n, dry)], [`Every day dry`, dry ** n], [`At least 3 really warm days (20°C+)`, atLeast(3, n, w.t20)], ["Snow disrupting a drive or visit", w.snow]],
-      expDry: Math.round(dry * n * 10) / 10
+      w, n, rw,
+      daily: [["Rain on a given day", rw.rain, "at least 1 mm"], ["Mostly sunny day", rw.sun, ""], ["Afternoon 15°C / 59°F or warmer", rw.t15, ""], ["Afternoon 20°C / 68°F or warmer", rw.t20, ""], ["Frost overnight", rw.frost, ""], [`Strong-wind day (${w.windName})`, rw.wind, ""]],
+      trip: [[`At least ${n - 2} of ${n} days mostly dry`, rw.dry], ["Every day dry", rw.allDry], ["At least 3 really warm days (20°C+)", rw.warm3], ["Snow disrupting a drive or visit", rw.snowTrip]],
+      expDry: rw.expDry
     };
   }
   function wxBlock(d) {
@@ -281,7 +281,11 @@
       <h3 class="wx-h">Over the ${r.n} days</h3>
       <div class="pr">${r.trip.map(([l, p]) => bar([l, p, ""])).join("")}</div>
       <p class="wx-s">Expect about <b>${r.expDry}</b> dry days out of ${r.n}. ${esc(r.w.note)}</p>
-      <p class="legend">Estimated from long-term March averages for the main stops. Climate odds, not a forecast. The ${r.n}-day figures treat days as independent; real weather comes in spells, so a fully dry or fully wet week is somewhat more likely than shown.</p>`;
+      <h3 class="wx-h">By stop</h3>
+      <div class="cmp-scroll"><table class="legs wxs"><tr><th>Stop</th><th>Nights</th><th>High / low</th><th>Rain</th><th>Sun</th><th>Frost</th><th>Wind</th></tr>
+        ${r.rw.stops.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${s.n}</td><td>${s.wx.hi}° / ${s.wx.lo}°C</td><td>${pct(s.wx.rain)}</td><td>${pct(s.wx.sun)}</td><td>${pct(s.wx.frost)}</td><td>${pct(s.wx.wind)}${s.wx.windName === "mistral" ? " mistral" : ""}</td></tr>`).join("")}
+      </table></div>
+      <p class="legend">Route odds are the stops weighted by nights. Add-ons and night changes in the <a href="#/budget/${d.id}">budget</a> update them there. Estimated from long-term March averages; climate odds, not a forecast. Multi-day figures treat days as independent, but real weather comes in spells, so a fully dry or fully wet week is somewhat more likely than shown.</p>`;
   }
 
   /* ---------------- compare ---------------- */
@@ -309,10 +313,10 @@
       </table></div>
       <div class="section-h" style="margin-top:40px"><h2>Weather odds</h2><p>Mid-March climate odds, not a forecast</p></div>
       <div class="cmp-scroll"><table class="cmp wxc"><tr><th>Option</th><th>Rain on a day</th><th>Sunny day</th><th>15°C+ day</th><th>Frost night</th><th>Windy day</th><th>Mostly dry trip*</th><th>Snow disruption</th></tr>
-        ${D.filter(d => window.WX && window.WX[d.id]).map(d => { const r = wxRows(d), w = r.w;
-          return `<tr><td><b>${esc(d.name)}</b></td><td>${pct(w.rain)}</td><td>${pct(w.sun)}</td><td>${pct(w.t15)}</td><td>${pct(w.frost)}</td><td>${pct(w.wind)}</td><td><b>${pct(r.trip[0][1])}</b></td><td>${pct(w.snow)}</td></tr>`; }).join("")}
+        ${D.map(d => [d, wxRows(d)]).filter(([, r]) => r).map(([d, r]) => { const w = r.rw;
+          return `<tr><td><b>${esc(d.name)}</b></td><td>${pct(w.rain)}</td><td>${pct(w.sun)}</td><td>${pct(w.t15)}</td><td>${pct(w.frost)}</td><td>${pct(w.wind)}</td><td><b>${pct(w.dry)}</b></td><td>${pct(w.snowTrip)}</td></tr>`; }).join("")}
       </table></div>
-      <p style="color:var(--mute);font-size:13px;margin-top:8px">*At most 2 rainy days in the trip (8 days for Europe, 9 for the US trips).</p>
+      <p style="color:var(--mute);font-size:13px;margin-top:8px">*At most 2 rainy days in the trip (8 days for Europe, 9 for the US trips). Default stops; add-ons change the odds in the budget.</p>
       <p style="color:var(--mute);font-size:13px;margin-top:14px">Score = 70% weighted criteria (my starting estimates, edit them in data.js) + 30% your two ratings + 5 for ★ shortlist.</p>
     </div>`;
     hydrateImgs($("#view-compare"));

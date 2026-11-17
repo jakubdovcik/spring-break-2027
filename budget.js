@@ -116,6 +116,26 @@
       opts: s.opts.map(o => ({ mode: MODE[o[0]], h: o[1], time: fmtH(o[1]), cost: segLabel(o), note: o[3] })) }));
   };
 
+  /* ---------------- weather from the stops actually chosen ---------------- */
+  const pct = p => p <= 0 ? "~0%" : p < .02 ? "<2%" : p > .98 && p < 1 ? ">98%" : Math.round(p * 100) + "%";
+  // chance that at least k of the days succeed, each day with its own probability
+  const atLeastK = (ps, k) => { let dp = [1]; ps.forEach(p => { const nx = new Array(dp.length + 1).fill(0); dp.forEach((v, i) => { nx[i] += v * (1 - p); nx[i + 1] += v * p; }); dp = nx; }); return dp.slice(Math.max(0, k)).reduce((a, x) => a + x, 0); };
+  function routeWeather(L) {
+    const days = []; L.forEach(l => { const w = B.bases[l.id].wx; if (w) for (let i = 0; i < l.n; i++) days.push(w); });
+    const n = days.length; if (!n) return null;
+    const avg = k => days.reduce((a, w) => a + w[k], 0) / n;
+    return {
+      n, hi: avg("hi"), lo: avg("lo"), rain: avg("rain"), sun: avg("sun"), t15: avg("t15"), t20: avg("t20"), frost: avg("frost"), wind: avg("wind"),
+      mistral: L.some(l => B.bases[l.id].wx && B.bases[l.id].wx.windName === "mistral"),
+      dry: atLeastK(days.map(w => 1 - w.rain), n - 2), allDry: days.reduce((a, w) => a * (1 - w.rain), 1),
+      warm3: atLeastK(days.map(w => w.t20), 3), snowTrip: 1 - days.reduce((a, w) => a * (1 - w.snow), 1),
+      expDry: Math.round(days.reduce((a, w) => a + 1 - w.rain, 0) * 10) / 10,
+      stops: L.map(l => ({ name: B.bases[l.id].name, n: l.n, wx: B.bases[l.id].wx }))
+    };
+  }
+  window.routeWeather = id => { const it = IT[id]; return it ? routeWeather(it.legs.map(l => ({ id: l[0], n: l[1] }))) : null; };
+  const wxLine = w => w ? `${w.hi}° / ${w.lo}°C · rain ${pct(w.rain)} · sun ${pct(w.sun)}${w.frost >= .2 ? ` · frost ${pct(w.frost)}` : ""}${w.snow >= .02 ? ` · snow risk` : ""}${w.windName === "mistral" ? " · mistral" : ""}` : "";
+
   /* one dot per night, grouped by stop: a quiet way to show the shape of a route */
   const glyph = ns => `<span class="ng">${ns.map(n => `<span>${"<i></i>".repeat(Math.max(0, n))}</span>`).join("")}</span>`;
   window.nightsGlyph = glyph;
@@ -288,6 +308,7 @@
         </div>
         <div class="hrow"><select class="hsel" data-hotel="${l.id}">${base.hotels.map((h, i) => `<option value="${i}" ${i === hi ? "selected" : ""}>${esc(h[0])} · ${usd(h[1])}/night · ${esc(h[2])}</option>`).join("")}</select>
           <label class="hcust">or $<input type="number" min="0" step="10" inputmode="numeric" placeholder="${base.hotels[hi][1]}" value="${custom || ""}" data-hprice="${l.id}" aria-label="Custom nightly price">/night</label></div>
+        <div class="leg-wx">${wxLine(base.wx)}</div>
         <div class="leg-sub" data-legsub="${l.id}">${usd(l.n * hotelPrice(l.id))} for ${l.n} night${l.n > 1 ? "s" : ""}${custom ? " · your own price" : ""}</div>
         ${seeFor(l.id).length ? `<div class="svs"><span class="svs-l">See</span>${seeFor(l.id).map(s => `<a class="sv ${s[1]}" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s[0] + " " + base.name.split(" ·")[0])}" target="_blank" rel="noopener" title="${esc(s[3])}">${esc(s[0])}</a>`).join("")}</div>` : ""}
         ${base.dine.length ? `<div class="dines"><span class="svs-l">Eat</span>${base.dine.map((d, i) => `<button class="dn ${b.dine[l.id + "|" + i] ? "on" : ""}" data-dine="${l.id}|${i}">${d[2] ? `<i>${"✿".repeat(d[2])}</i>` : ""}${esc(d[0])} <em>${usd(d[1])}</em></button>`).join("")}</div>` : ""}
@@ -350,6 +371,15 @@
       </div>`;
   }
 
+  function wxCard(L) {
+    const r = routeWeather(L); if (!r) return "";
+    const row = (l, p) => `<div class="pr-r"><span>${l}</span><div class="pr-b"><i style="width:${Math.max(1, p * 100)}%"></i></div><b>${pct(p)}</b></div>`;
+    return `<div class="wxcard"><h4 class="bh" style="margin:14px 0 8px">Weather on this route</h4>
+      <p class="bnote" style="margin:0 0 8px">Average ${Math.round(r.hi)}° / ${Math.round(r.lo)}°C. About <b>${r.expDry}</b> dry days out of ${r.n}.</p>
+      <div class="pr">${row("Rain on a day", r.rain)}${row("Mostly sunny day", r.sun)}${row("15°C / 59°F or warmer", r.t15)}${row("Frost overnight", r.frost)}${row(r.mistral ? "Windy day (incl. mistral)" : "Strong-wind day", r.wind)}${row(`At least ${r.n - 2} of ${r.n} days dry`, r.dry)}${row("Snow disrupts a day", r.snowTrip)}</div>
+      <p class="bnote">Changes as you add or drop stops and nights. Climate odds, not a forecast.</p></div>`;
+  }
+
   function renderSum() {
     const b = st(), it = IT[b.it], c = compute(it);
     const target = tgt(it), ok = c.nights === target, ext = b.len === "extend" && c.nights > target;
@@ -361,6 +391,7 @@
       <table class="brk">${CATS.map(([key, l, col]) => `<tr><td><i style="background:${col}"></i>${l}</td><td>${usd(c.parts[key])}</td></tr>`).join("")}</table>
       <div class="nchk ${ok || ext ? "" : "warn"}">${ok ? `✓ ${c.nights} nights, ${target === 9 ? "Fri 12" : "Sat 13"} → Sun 21` : ext ? `${c.nights} nights: ${fmtD(arrive)} → home ${fmtD(home)}. That's ${c.nights - target} extra day${c.nights - target > 1 ? "s" : ""} off.` : `${c.nights} nights. The dates fit ${target}, so adjust with − / +`}</div>
       <p class="bnote">≈ ${fmtH(c.travelH)} of travel between stops${c.segs.some(s => s.o[0] !== "car") && carOn(IT[b.it]) ? ". Some legs are by train or bus, so you may need the car for fewer days" : ""}.</p>
+      ${wxCard(c.L)}
       ${c.dinners.length ? `<p class="bnote">Starred dinners: ${c.dinners.map(esc).join(", ")}</p>` : `<p class="bnote">Tap a restaurant under any stop to add it.</p>`}
       ${c.bookendHops ? `<p class="bnote">Includes ~$300 for each city stop that isn't on your flight path.</p>` : ""}`;
   }
