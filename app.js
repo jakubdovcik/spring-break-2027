@@ -67,7 +67,9 @@
   L.tileLayer(esri + "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, attribution: "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors" }).addTo(map);
   L.tileLayer(esri + "World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16 }).addTo(map);
   let layer = L.layerGroup().addTo(map);
-  new ResizeObserver(() => { if (map.getContainer().offsetWidth) map.invalidateSize(); }).observe(document.getElementById("map"));
+  let lastFit = null;
+  const fit = (pts, o) => { lastFit = [pts, o]; if (map.getContainer().offsetWidth) map.fitBounds(pts, o); };
+  new ResizeObserver(() => { if (!map.getContainer().offsetWidth) return; map.invalidateSize(); if (lastFit) map.fitBounds(...lastFit); }).observe(document.getElementById("map"));
   const markers = {};
   function popup(s, d) {
     return `<b>${esc(s.name)}</b>${s.nights ? `<span style="color:#8a8a8a">${s.nights} night${s.nights > 1 ? "s" : ""}</span><br>` : ""}${esc(s.desc)}<br><a target="_blank" rel="noopener" href="${gmaps(s.name.replace(/\(.*\)/, "") + " " + (d.region.split("·")[0] || ""))}">Open in Google Maps ↗</a>`;
@@ -85,7 +87,7 @@
       lbl.on("click", () => go("#/d/" + d.id));
       pts.push(...ll);
     });
-    if (pts.length) map.fitBounds(pts, { padding: [40, 40] });
+    if (pts.length) fit(pts, { padding: [40, 40] });
   }
   function drawOne(d) {
     layer.clearLayers();
@@ -95,7 +97,7 @@
     d.stops.forEach((s, i) => {
       markers[i] = L.marker([s.lat, s.lng], { icon: L.divIcon({ className: "", html: `<div class="pin" style="background:${d.color}">${i + 1}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }) }).bindPopup(popup(s, d)).addTo(layer);
     });
-    map.fitBounds(ll, { padding: [60, 60], maxZoom: 9 });
+    fit(ll, { padding: [40, 40], maxZoom: 9 });
   }
 
   /* ---------------- chips ---------------- */
