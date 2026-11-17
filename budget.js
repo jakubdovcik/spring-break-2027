@@ -171,7 +171,8 @@
     const b = st(), L = legs(it), fx = 1 + b.fx / 100;
     const nights = L.reduce((a, l) => a + l.n, 0);
     const hm = hubMode(it);
-    const flights = flightPP(it, hm ? "hub" : "through", curHub()).pp * 2 + b.bags * 150 + (hm ? b.bags * B.lccBag * 2 : 0);
+    const bagFees = it.domestic ? b.bags * 70 : Math.max(0, b.bags - 2) * 150;
+    const flights = flightPP(it, hm ? "hub" : "through", curHub()).pp * 2 + bagFees + (hm ? b.bags * B.lccBag * 2 : 0);
     let hotels = 0, daily = 0, dining = 0, fAvg = 0;
     const dinners = [];
     L.forEach(l => {
@@ -190,14 +191,14 @@
     const bookendHops = it.domestic ? 0 : [b.start.c, b.end.c].filter(c => c && !hubsNow.includes(c)).length;
     const car = carOn(it) ? carDays(it) * B.carPerDay * CAR[b.carCls][1] : 0;
     const noCarExtra = !carOn(it) && carDays(it) ? carDays(it) * 45 : 0;
-    const segs = segments(it, L), segSum = segs.reduce((a, s) => a + segCost(s.o), 0), travelH = segs.reduce((a, s) => a + s.o[1], 0);
-    const transport = car + noCarExtra + transfersFor(it).reduce((a, t) => a + t[1] * 2, 0) + TAXI[b.taxi][1] + (b.start.c || b.end.c ? 60 : 0) + segSum;
+    const segs = segments(it, L), segSum = segs.reduce((a, s) => a + (s.o[0] === "car" && !carOn(it) ? 0 : segCost(s.o)), 0), travelH = segs.reduce((a, s) => a + s.o[1], 0);
+    const transport = car + noCarExtra + transfersFor(it).reduce((a, t) => a + t[1] * 2, 0) + TAXI[b.taxi][1] * (carOn(it) ? Math.max(.35, 1 - carDays(it) / Math.max(1, nights)) : 1) + (b.start.c || b.end.c ? 60 : 0) + segSum;
     const fun = b.spaN * 190 + b.tours * 140 + b.shopping;
     const parts = { flights, hotels: hotels * fx, dining: dining * fx, daily: daily * fx, transport: transport * fx + bookendHops * 300, fun: fun * fx, safety: 0 };
     const sub = Object.values(parts).reduce((a, x) => a + x, 0);
     parts.safety = (b.ins ? (flights + parts.hotels) * B.insurancePct : 0) + sub * b.buffer / 100;
     const total = sub + parts.safety;
-    return { L, nights, parts, total, low: total * .85, high: total * 1.2, dinners, bookendHops, segs, travelH };
+    return { L, nights, parts, total, low: total * .9, high: total * 1.1, dinners, bookendHops, segs, travelH };
   }
 
   /* ---------------- render ---------------- */
@@ -349,7 +350,7 @@
         <div class="brow"><span>Booking</span>${seg("timing", Object.entries(TIMING).map(([v, x]) => [v, x[0]]), b.timing)}</div>
         ${hubMode(it) ? lccBox(it) : `<div class="brow"><span>Fare</span><label class="hcust">$<input type="number" min="0" step="10" inputmode="numeric" placeholder="${Math.round(it.flight[b.origin] * TIMING[b.timing][1])}" value="${b.fare[it.id] || ""}" data-fare="${it.id}">per person, economy round trip</label></div>`}
         <div class="brow"><span>Bags</span>${stepper("bags", b.bags, "", b.bags === 1 ? "checked bag" : "checked bags")}</div>
-        <p class="bnote">${hubMode(it) ? `Separate tickets: if the transatlantic flight is late, the low-cost airline won't wait. Leave 3+ hours, or sleep a night in the hub. Low-cost bags are about $${B.lccBag} each per flight, on top of the transatlantic allowance.` : "Paste a real fare when you find one and it replaces my estimate. Bags are about $150 each, round trip."}</p>
+        <p class="bnote">${hubMode(it) ? `Separate tickets: if the transatlantic flight is late, the low-cost airline won't wait. Leave 3+ hours, or sleep a night in the hub. Low-cost bags are about $${B.lccBag} each per flight, on top of the transatlantic allowance.` : "Paste a real fare when you find one and it replaces my estimate. " + (it.domestic ? "Checked bags are about $35 each way." : "One checked bag each is included on Delta, Air France and KLM (not Basic Economy). Extra bags are about $150 each, round trip.")}</p>
         ${lccOk(it) ? compareLine(it) : ""}
       </div>
 
