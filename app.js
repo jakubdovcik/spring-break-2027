@@ -98,7 +98,10 @@
     d.stops.forEach((s, i) => {
       markers[i] = L.marker([s.lat, s.lng], { icon: L.divIcon({ className: "", html: `<div class="pin" style="background:${d.color}">${i + 1}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }) }).bindPopup(popup(s, d)).addTo(layer);
     });
-    fit(ll, { padding: [40, 40], maxZoom: 9 });
+    const xs = window.budgetExtras ? window.budgetExtras(d.id) : [];
+    xs.forEach(x => L.marker([x.lat, x.lng], { icon: L.divIcon({ className: "", html: `<div class="pin xpin">+</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) })
+      .bindPopup(`<b>${esc(x.name)}</b><span style="color:#8a8a8a">Optional add-on · ${x.nights}n</span><br>${esc(x.why)}<br><a href="#/budget/${d.id}+${x.base}">Add in the budget →</a>`).addTo(layer));
+    fit(ll.concat(xs.map(x => [x.lat, x.lng])), { padding: [40, 40], maxZoom: 9 });
   }
 
   /* ---------------- chips ---------------- */
@@ -148,7 +151,8 @@
   }
 
   /* ---------------- shared bits for hub + low-cost ---------------- */
-  const HUBS = [["london", "London"], ["paris", "Paris"], ["amsterdam", "Amsterdam"]];
+  const HUBS = [["paris", "Paris"], ["amsterdam", "Amsterdam"], ["london", "London"]];
+  const SKYHUB = { paris: true, amsterdam: true };
   const usd0 = n => "$" + Math.round(n).toLocaleString("en-US");
   const gq = q => "https://www.google.com/travel/flights?q=" + encodeURIComponent(q);
   function highlightTiles(id) {
@@ -161,15 +165,24 @@
       <b>${esc(s[0])}</b><small>${esc(window.BUDGET.bases[b].name)}</small><p>${esc(s[3])}</p></a>`).join("")}</div>`;
   }
   function hubTable(id) {
-    const it = window.BUDGET.itineraries.find(i => i.id === id), o = window.budgetFlightOptions(id);
-    if (!it || !o || !o.london) return "";
-    const B = window.BUDGET, A = B.lccAirports;
-    return `<h3 style="font-size:16px;margin:24px 0 6px">Or fly to a hub, then go low-cost</h3>
-      <p style="margin:0 0 8px;color:var(--ink2);font-size:14px">One ticket all the way is about <b>${usd0(o.through)}</b> per person. Separate tickets via a hub:</p>
-      <table class="legs"><tr><th>Hub</th><th>Onward to ${esc(A[it.lcc.in])}</th><th>Back from ${esc(A[it.lcc.out])}</th><th>Per person</th></tr>
-      ${HUBS.map(([h, n]) => { const i = B.lcc[it.lcc.in][h], ou = B.lcc[it.lcc.out][h];
-        return `<tr><td class="code">${n}</td><td>${esc(i[0])} <span style="color:var(--mute)">~${usd0(i[1])}</span></td><td>${esc(ou[0])} <span style="color:var(--mute)">~${usd0(ou[1])}</span></td><td class="code">${usd0(o[h])}</td></tr>`; }).join("")}</table>
+    const r = window.budgetHubRows(id);
+    if (!r || !r.rows.length) return "";
+    return `<h3 style="font-size:16px;margin:24px 0 6px">Or fly to a hub, then a short European flight</h3>
+      <p style="margin:0 0 8px;color:var(--ink2);font-size:14px">One ticket all the way is about <b>${usd0(r.through)}</b> per person. Separate tickets via a hub, Air France / KLM first:</p>
+      <table class="legs"><tr><th>Hub</th><th>Onward to ${esc(r.inName)}</th><th>Back from ${esc(r.outName)}</th><th>Per person</th></tr>
+      ${r.rows.map(x => `<tr><td class="code">${x.name}<br><span style="color:var(--mute);font-weight:500;font-size:12px">${x.sky ? "Delta · Air France · KLM" : "other airlines"}</span></td><td>${esc(x.inL[0])} <span style="color:var(--mute)">~${usd0(x.inL[1])}</span></td><td>${esc(x.outL[0])} <span style="color:var(--mute)">~${usd0(x.outL[1])}</span></td><td class="code">${usd0(x.pp)}</td></tr>`).join("")}</table>
       <div class="btns"><a class="btn" href="#/budget/${id}">Price it in the budget →</a><a class="btn" href="#/flights">How hub + low-cost works</a></div>`;
+  }
+  function skyBox(id) {
+    const it = window.BUDGET.itineraries.find(i => i.id === id);
+    return it && it.sky ? `<div class="skyr" style="margin:0 0 12px"><small>${it.domestic ? "Suggested" : "Preferred: Delta · Air France · KLM"}</small>${esc(it.sky)}</div>` : "";
+  }
+  function addonCards(id) {
+    const xs = window.budgetExtras(id);
+    if (!xs.length) return "";
+    return `<div class="blk" id="s-add"><h2>Optional add-ons</h2>
+      <p class="legend" style="margin:-8px 0 14px">Extra stops to mix in. Each one opens the budget with that stop added, where you can change nights and see the cost.</p>
+      <div class="xs">${xs.map(x => `<a class="xo" href="#/budget/${id}+${x.base}"><span class="xo-h"><b>${esc(x.name)}</b><i>+ Add</i></span><small>${x.nights} night${x.nights > 1 ? "s" : ""} · about +$${Math.round(Math.max(0, x.delta) / 100) / 10}k for two</small><p>${esc(x.why)}</p></a>`).join("")}</div></div>`;
   }
 
   /* ---------------- explore: detail ---------------- */
@@ -185,7 +198,7 @@
       <div class="facts"><span><b>${nights(d)}</b> nights</span><span><b>${d.stops.filter(s => s.nights).length}</b> bases</span><span><b>${d.weather.hi}° / ${d.weather.lo}°C</b></span><span><b>~${d.weather.rainDays}</b> rainy days/mo</span><span><b>${starred.length}</b> Michelin-starred</span><span><b>${d.budget}</b></span></div>
       <p class="tagline">${esc(d.tagline)}</p>
       <a class="btn dark" style="margin:-4px 0 18px" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>
-      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-route">Route</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
+      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-route">Route</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
 
       <div class="blk" id="s-see"><h2>Highlights: nature &amp; sights</h2>${highlightTiles(d.id)}</div>
 
@@ -193,6 +206,8 @@
         <div class="stops">${d.stops.map((s, i) => `<button class="stop" data-stop="${i}"><span class="n" style="background:${d.color}">${i + 1}</span>${esc(s.name)} <em>${s.nights ? s.nights + "n" : "stop"}</em></button>`).join("")}</div>
         <ol class="days">${d.days.map(x => `<li><span class="dd">${esc(x.d)}</span><span class="tt">${esc(x.t)}</span></li>`).join("")}</ol>
       </div>
+
+      ${addonCards(d.id)}
 
       <div class="blk" id="s-stay"><h2>Where to stay</h2>
         <div class="stays">${d.stays.map(s => `<a class="stay ${s.highlight ? "hl" : ""}" href="${s.url}" target="_blank" rel="noopener">
@@ -218,6 +233,7 @@
       </div>
 
       <div class="blk" id="s-fly"><h2>Getting there</h2>
+        ${skyBox(d.id)}
         <p style="margin:0 0 10px;color:var(--ink2)">${esc(d.flights.summary)}</p>
         <table class="legs"><tr><th>From</th><th>To</th><th>How</th></tr>${d.flights.legs.map(l => `<tr><td class="code">${esc(l.from)}</td><td class="code">${esc(l.to)}</td><td>${esc(l.by)}</td></tr>`).join("")}</table>
         <div class="btns"><a class="btn dark" target="_blank" rel="noopener" href="${gflights("BOS", d)}">Google Flights from BOS ↗</a><a class="btn" target="_blank" rel="noopener" href="${gflights("BWI", d)}">from BWI ↗</a><a class="btn" target="_blank" rel="noopener" href="${gflights("IAD", d)}">from IAD ↗</a></div>
@@ -263,9 +279,9 @@
   /* ---------------- flights ---------------- */
   function renderFlights() {
     const hubs = [
-      ["London (LHR)", "BOS: BA, Virgin, Delta, JetBlue · BWI: BA", "BIO, EDI, MRS, OVD (seasonal), AGP, SVQ", "Most flexible. Lots of 1–2 h hops, and the train to Edinburgh."],
-      ["Paris (CDG)", "BOS: Air France, Delta · IAD: AF, United", "BIO, MRS, plus the TGV to Aix from the airport", "Best for Provence, since the train leaves from inside the terminal."],
-      ["Amsterdam (AMS)", "BOS: Delta, KLM · IAD: KLM", "BIO, EDI, MRS", "Smooth connections, one roof."],
+      ["Paris (CDG) ★", "BOS: Air France, Delta · IAD: Air France", "BIO, EDI, MRS, BOD, SVQ, LIS on Air France / Transavia, plus the TGV from the airport", "Preferred. Best for Provence and the Loire, and the train leaves from inside the terminal."],
+      ["Amsterdam (AMS) ★", "BOS: KLM, Delta · IAD: KLM", "BIO, EDI, MRS, BOD, AGP, LIS on KLM / Transavia", "Preferred. Everything under one roof, KLM to Bilbao and Edinburgh."],
+      ["London (LHR)", "BOS: Virgin Atlantic & Delta (SkyTeam), BA · BWI: BA", "BIO, EDI, MRS, AGP, SVQ (mostly BA, easyJet, Ryanair)", "Virgin Atlantic earns Delta miles, but onward flights are mostly other airlines."],
       ["Dublin (DUB)", "BOS: Aer Lingus, Delta · IAD: Aer Lingus", "EDI, BIO (seasonal), MRS (seasonal)", "US customs preclearance on the way home."],
       ["Madrid (MAD)", "BOS: Iberia · IAD: Iberia/United", "OVD, BIO, SVQ, plus AVE trains", "Natural gateway for Spain and open-jaw routes."],
       ["Lisbon (LIS)", "BOS & IAD: TAP", "BIO, OVD (via Porto), Azores", "A Lisbon stopover is free with TAP."],
@@ -274,13 +290,14 @@
     ];
     $("#view-flights").innerHTML = `<div class="wrap">
       <div class="section-h"><h2>Flights &amp; connections</h2><p>Out Fri 12 Mar overnight, back Sun 21 Mar by the afternoon</p></div>
+      <p class="skyr" style="max-width:80ch">★ Preferred airlines: <b>Delta, Air France, KLM</b> and their partners (Virgin Atlantic, Transavia, Air Europa). Paris and Amsterdam are their hubs, so those routes come first everywhere on this site.</p>
       <p style="color:var(--ink2);max-width:70ch;margin:0 0 20px">The simplest plan: buy one return ticket from the US to a big hub, then book a separate cheap European flight or train. Leave at least a 3 h buffer on separate tickets, and on the way home take the earliest flight out of the small airport. Baltimore has BA to London and Icelandair. Dulles (IAD) is about an hour away and has many more direct routes.</p>
       <table class="legs"><tr><th>Hub</th><th>Direct from the US</th><th>Onward to</th><th>Why</th></tr>
         ${hubs.map(h => `<tr><td class="code">${h[0]}</td><td>${h[1]}</td><td>${h[2]}</td><td style="color:var(--ink2)">${h[3]}</td></tr>`).join("")}</table>
-      <div class="section-h" style="margin-top:36px"><h2>Hub + low-cost airlines</h2><p>Round trip to London, Paris or Amsterdam, then a separate cheap flight or train</p></div>
-      <div class="hubfares">${HUBS.map(([h, n]) => `<div><small>${n}</small><b>~${usd0(window.BUDGET.hubFare.BOS[h])}</b><span>from BOS · ~${usd0(window.BUDGET.hubFare.BWI[h])} from BWI</span><em>${esc(window.BUDGET.hubFrom.BOS[h])}</em></div>`).join("")}</div>
-      <div class="cmp-scroll"><table class="legs lccm"><tr><th>To</th>${HUBS.map(([, n]) => `<th>From ${n}</th>`).join("")}</tr>
-        ${Object.entries(window.BUDGET.lccAirports).filter(([c]) => c !== "rail").map(([c, name]) => `<tr><td class="code">${esc(name)} <span style="color:var(--mute);font-weight:500">${c}</span></td>${HUBS.map(([h, n]) => { const x = window.BUDGET.lcc[c][h];
+      <div class="section-h" style="margin-top:36px"><h2>Hub + short European flights</h2><p>Round trip to Paris or Amsterdam (or London), then a separate short flight or train</p></div>
+      <div class="hubfares">${HUBS.map(([h, n]) => `<div><small>${n}</small><b>~${usd0(window.BUDGET.hubFare.BOS[h])}</b><span>from BOS · ~${usd0(window.BUDGET.hubFare.BWI[h])} from BWI</span><em>${esc(window.BUDGET.hubFrom.BOS[h])}${SKYHUB[h] ? " ★" : ""}</em></div>`).join("")}</div>
+      <div class="cmp-scroll"><table class="legs lccm"><tr><th>To</th>${HUBS.map(([h, n]) => `<th>From ${n}${SKYHUB[h] ? " ★ AF / KLM / Transavia" : " · other airlines"}</th>`).join("")}</tr>
+        ${Object.entries(window.BUDGET.lccAirports).filter(([c]) => c !== "rail").map(([c, name]) => `<tr><td class="code">${esc(name)} <span style="color:var(--mute);font-weight:500">${c}</span></td>${HUBS.map(([h, n]) => { const x = (SKYHUB[h] ? window.BUDGET.skyLcc : window.BUDGET.lcc)[c][h];
           return `<td><a href="${gq(`Flights from ${n} to ${name} on 2027-03-13`)}" target="_blank" rel="noopener">${esc(x[0])}</a><br><span style="color:var(--mute)">~${usd0(x[1])} one way · ${esc(x[2])}</span></td>`; }).join("")}</tr>`).join("")}
       </table></div>
       <ul class="tips">
@@ -290,6 +307,8 @@
         <li><b>On the way home</b>, take the earliest flight out of the small airport so you have a buffer before the afternoon transatlantic.</li>
         <li><b>Trains count too.</b> From Paris, the TGV to Marseille/Aix or Bordeaux is often better than flying. From London, the Eurostar gets you to Paris for the Loire or Lyon routes.</li>
       </ul>
+      <div class="section-h" style="margin-top:36px"><h2>Preferred routing per option</h2><p>Delta · Air France · KLM where they fly</p></div>
+      <table class="legs"><tr><th>Option</th><th>Routing</th></tr>${window.BUDGET.itineraries.filter(i => i.sky).map(i => `<tr><td><b>${esc(i.name)}</b></td><td style="color:var(--ink2)">${esc(i.sky)}</td></tr>`).join("")}</table>
       <div class="section-h" style="margin-top:36px"><h2>Search each option</h2><p>Prefilled dates, opens Google Flights</p></div>
       <table class="legs"><tr><th>Option</th><th>Into → out of</th><th></th></tr>
         ${D.map(d => `<tr><td><b>${esc(d.name)}</b></td><td class="code">${d.flights.searchIn} → ${d.flights.searchOut}</td><td><div class="btns" style="margin:0"><a class="btn dark" target="_blank" rel="noopener" href="${gflights("BOS", d)}">BOS ↗</a><a class="btn" target="_blank" rel="noopener" href="${gflights("BWI", d)}">BWI ↗</a><a class="btn" target="_blank" rel="noopener" href="${gflights("IAD", d)}">IAD ↗</a></div></td></tr>`).join("")}</table>

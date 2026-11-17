@@ -10,7 +10,7 @@
   const CAR = { compact: ["Compact", 1], suv: ["SUV / estate", 1.35], premium: ["Premium", 1.8] };
   const TAXI = { transit: ["Trains & buses", 50], taxi: ["Taxis", 140], driver: ["Private drivers", 420] };
   const DEF = () => ({
-    it: "spain", origin: "BOS", cabin: "eco", timing: "typical", fare: {}, bags: 2, ticket: "through", hub: "london",
+    it: "spain", origin: "BOS", cabin: "eco", timing: "typical", fare: {}, bags: 2, ticket: "through", hub: "paris", air: "sky", ex: {}, xn: {}, len: "keep",
     nights: {}, hotel: {}, hotelPrice: {}, dine: {}, nice: 3,
     start: { c: "", n: 1 }, end: { c: "", n: 1 },
     carOn: {}, carDays: {}, carCls: "compact", taxi: "taxi",
@@ -25,31 +25,65 @@
   const save = () => window.APP.save();
   const hotelIdx = id => { const b = st(), h = B.bases[id].hotels; return b.hotel[id] ?? (h.length >= 3 ? 1 : 0); };
   const hotelPrice = id => st().hotelPrice[id] || B.bases[id].hotels[hotelIdx(id)][1];
-  const carOn = it => st().carOn[it.id] ?? it.car > 0;
-  const carDays = it => st().carDays[it.id] ?? (it.car || 3);
+  /* add-on stops */
+  const tgt = it => it.nightsTarget || B.nightsTarget;
+  const xKey = (it, x) => it.id + "|" + x[0];
+  const extrasOn = it => (it.extras || []).filter(x => st().ex[xKey(it, x)]);
+  const xNights = (it, x) => st().xn[xKey(it, x)] ?? x[1];
+  const extraCar = it => extrasOn(it).reduce((a, x) => a + x[3], 0);
+  const baseCar = it => st().carDays[it.id] ?? (it.car || 3);
+  const carOn = it => st().carOn[it.id] ?? (it.car > 0 || extraCar(it) > 0);
+  const carDays = it => baseCar(it) + extraCar(it);
   const baseFare = it => { const b = st(); return b.fare[it.id] || Math.round(it.flight[b.origin] * TIMING[b.timing][1]); };
 
   /* flights: one through ticket, or a hub round trip plus low-cost legs */
   const DOMCAB = { eco: ["Economy", 1], prem: ["Extra legroom", 1.3], biz: ["First", 2.5] };
   const cabins = it => it.domestic ? DOMCAB : B.cabins;
-  const lccOk = it => !!(it.lcc && B.lcc[it.lcc.in] && B.lcc[it.lcc.out]);
+  const sky = () => st().air === "sky";
+  const lccTable = () => sky() ? B.skyLcc : B.lcc;
+  const HUBN = { paris: "Paris", amsterdam: "Amsterdam", london: "London" };
+  const hubList = () => (sky() ? ["paris", "amsterdam"] : ["paris", "amsterdam", "london"]).map(h => [h, HUBN[h]]);
+  const curHub = () => { const h = st().hub; return sky() && h === "london" ? "paris" : h; };
+  const lccOk = (it, T = lccTable()) => !!(it.lcc && T[it.lcc.in] && T[it.lcc.out]);
   const hubMode = it => st().ticket === "hub" && lccOk(it);
-  function flightPP(it, mode, hub) {
+  /* switching airports in the hub costs ~$35 pp, only when the short flight leaves from a different airport */
+  const MAINAP = { paris: "CDG", amsterdam: "AMS", london: "LHR" };
+  const changeFor = (leg, hub) => { const first = String(leg[2]).split(" / ")[0]; return /^[A-Z]{3}$/.test(first) && first !== MAINAP[hub] ? B.hubChange[hub] : 0; };
+  function flightPP(it, mode, hub, T = lccTable()) {
     const b = st(), cab = cabins(it)[b.cabin][1], tm = TIMING[b.timing][1];
-    if (mode === "hub" && lccOk(it)) {
-      const i = B.lcc[it.lcc.in][hub], o = B.lcc[it.lcc.out][hub];
-      const change = it.lcc.in === "rail" ? 0 : B.hubChange[hub];
-      return { pp: B.hubFare[b.origin][hub] * cab * tm + (i[1] + o[1]) * tm + change + B.hubChange[hub], inL: i, outL: o };
+    if (mode === "hub" && lccOk(it, T) && T[it.lcc.in][hub]) {
+      const i = T[it.lcc.in][hub], o = T[it.lcc.out][hub];
+      const chg = changeFor(i, hub) + changeFor(o, hub);
+      return { pp: B.hubFare[b.origin][hub] * cab * tm + (i[1] + o[1]) * tm + chg, inL: i, outL: o, chg };
     }
     return { pp: baseFare(it) * cab };
   }
-  const transfersFor = it => it.transfers.filter(t => !(t[2] === "arrival" && hubMode(it)));
+  const transfersFor = it => it.transfers.filter(t => !(t[2] === "arrival" && hubMode(it)))
+    .concat(extrasOn(it).filter(x => x[4]).map(x => [`Getting to ${B.bases[x[0]].name}`, x[4]]));
   window.budgetFlightOptions = id => {
     const it = IT[id]; if (!it) return null;
     const o = { through: flightPP(it, "through").pp };
-    if (lccOk(it)) ["london", "paris", "amsterdam"].forEach(h => o[h] = flightPP(it, "hub", h).pp);
+    if (lccOk(it)) hubList().forEach(([h]) => o[h] = flightPP(it, "hub", h).pp);
     return o;
   };
+  /* for Explore pages: Delta / Air France / KLM hubs first, then London on other airlines */
+  window.budgetHubRows = id => {
+    const it = IT[id]; if (!it || !it.lcc) return null;
+    const rows = [];
+    [["paris", B.skyLcc, true], ["amsterdam", B.skyLcc, true], ["london", B.lcc, false]].forEach(([h, T, s]) => {
+      if (!lccOk(it, T) || !T[it.lcc.in][h]) return;
+      rows.push({ hub: h, name: HUBN[h], sky: s, inL: T[it.lcc.in][h], outL: T[it.lcc.out][h], pp: flightPP(it, "hub", h, T).pp });
+    });
+    return { through: flightPP(it, "through").pp, rows, inName: B.lccAirports[it.lcc.in], outName: B.lccAirports[it.lcc.out], sky: it.sky };
+  };
+  window.budgetExtras = id => { const it = IT[id]; return it ? (it.extras || []).map(x => ({ base: x[0], name: B.bases[x[0]].name, nights: x[1], why: x[5], lat: B.bases[x[0]].lat, lng: B.bases[x[0]].lng, delta: extraDelta(it, x) })) : []; };
+  function extraDelta(it, x) {
+    const b = st(), key = xKey(it, x), was = b.ex[key];
+    b.ex[key] = false; const off = compute(it).total;
+    b.ex[key] = true; const on = compute(it).total;
+    b.ex[key] = was;
+    return on - off;
+  }
 
   /* one dot per night, grouped by stop: a quiet way to show the shape of a route */
   const glyph = ns => `<span class="ng">${ns.map(n => `<span>${"<i></i>".repeat(Math.max(0, n))}</span>`).join("")}</span>`;
@@ -58,10 +92,20 @@
   function legs(it) {
     const b = st();
     const out = (b.nights[it.id] || it.legs.map(l => l[1])).map((n, i) => ({ id: it.legs[i][0], n, main: true, i }));
+    extrasOn(it).forEach(x => {
+      const leg = { id: x[0], n: xNights(it, x), extra: true, x };
+      if (x[2] === "start") out.unshift(leg);
+      else if (x[2] === "end") out.push(leg);
+      else { const at = out.findIndex(l => l.id === x[2].slice(6)); out.splice(at >= 0 ? at + 1 : out.length, 0, leg); }
+    });
+    if (b.len === "keep") { // make room: take nights from the longest main stops
+      let need = extrasOn(it).reduce((a, x) => a + xNights(it, x), 0);
+      while (need > 0) { const big = out.filter(l => l.main && l.n > 1).sort((p, q) => q.n - p.n || q.i - p.i)[0]; if (!big) break; big.n--; need--; }
+    }
     const borrow = (n, fromEnd) => { for (let s = 0; s < n; s++) { const leg = (fromEnd ? [...out].reverse() : out).find(l => l.n > 1); if (!leg) return; leg.n--; } };
     const pre = [], post = [];
-    if (b.start.c) { borrow(b.start.n, false); pre.push({ id: b.start.c, n: b.start.n, bookend: "start" }); }
-    if (b.end.c) { borrow(b.end.n, true); post.push({ id: b.end.c, n: b.end.n, bookend: "end" }); }
+    if (b.start.c) { if (b.len === "keep") borrow(b.start.n, false); pre.push({ id: b.start.c, n: b.start.n, bookend: "start" }); }
+    if (b.end.c) { if (b.len === "keep") borrow(b.end.n, true); post.push({ id: b.end.c, n: b.end.n, bookend: "end" }); }
     return [...pre, ...out, ...post];
   }
 
@@ -69,7 +113,7 @@
     const b = st(), L = legs(it), fx = 1 + b.fx / 100;
     const nights = L.reduce((a, l) => a + l.n, 0);
     const hm = hubMode(it);
-    const flights = flightPP(it, hm ? "hub" : "through", b.hub).pp * 2 + b.bags * 150 + (hm ? b.bags * B.lccBag * 2 : 0);
+    const flights = flightPP(it, hm ? "hub" : "through", curHub()).pp * 2 + b.bags * 150 + (hm ? b.bags * B.lccBag * 2 : 0);
     let hotels = 0, daily = 0, dining = 0, fAvg = 0;
     const dinners = [];
     L.forEach(l => {
@@ -82,10 +126,10 @@
     fAvg /= Math.max(1, nights);
     daily += b.dailyAmt * 2 * fAvg * .6;
     dining += b.nice * 200 * fAvg;
-    const hubsNow = hm ? [b.hub] : it.hubs;
+    const hubsNow = hm ? [curHub()] : it.hubs;
     const bookendHops = it.domestic ? 0 : [b.start.c, b.end.c].filter(c => c && !hubsNow.includes(c)).length;
     const car = carOn(it) ? carDays(it) * B.carPerDay * CAR[b.carCls][1] : 0;
-    const noCarExtra = !carOn(it) && it.car ? it.car * 45 : 0;
+    const noCarExtra = !carOn(it) && carDays(it) ? carDays(it) * 45 : 0;
     const transport = car + noCarExtra + transfersFor(it).reduce((a, t) => a + t[1] * 2, 0) + TAXI[b.taxi][1] + (b.start.c || b.end.c ? 60 : 0);
     const fun = b.spaN * 190 + b.tours * 140 + b.shopping;
     const parts = { flights, hotels: hotels * fx, dining: dining * fx, daily: daily * fx, transport: transport * fx + bookendHops * 300, fun: fun * fx, safety: 0 };
@@ -161,19 +205,28 @@
   }
 
   function lccBox(it) {
-    const b = st(), f = flightPP(it, "hub", b.hub), hubName = B.bases[b.hub].name, tm = TIMING[b.timing][1];
+    const b = st(), h = curHub(), f = flightPP(it, "hub", h), hubName = B.bases[h].name, tm = TIMING[b.timing][1];
     const row = (from, to, how, p) => `<div class="lcl"><span>${from}${to ? " → " + to : ""}</span><em>${esc(how)}</em><b>${usd(p)}</b></div>`;
     const inName = B.lccAirports[it.lcc.in], outName = B.lccAirports[it.lcc.out];
     return `<div class="lcbox">
-      ${row(b.origin, hubName, B.hubFrom[b.origin][b.hub] + " · round trip", B.hubFare[b.origin][b.hub] * cabins(it)[b.cabin][1] * tm)}
+      ${row(b.origin, hubName, B.hubFrom[b.origin][h] + " · round trip", B.hubFare[b.origin][h] * cabins(it)[b.cabin][1] * tm)}
       ${row(hubName + (f.inL[2] ? " (" + f.inL[2] + ")" : ""), inName, f.inL[0], f.inL[1] * tm)}
       ${row(outName, hubName + (f.outL[2] ? " (" + f.outL[2] + ")" : ""), f.outL[0], f.outL[1] * tm)}
-      ${B.hubChange[b.hub] ? row("Airport change", "", b.hub === "london" ? "Heathrow ↔ Gatwick/Stansted" : "CDG ↔ Orly", B.hubChange[b.hub] * (it.lcc.in === "rail" ? 1 : 2)) : ""}
+      ${f.chg ? row("Airport change", "", h === "london" ? "Heathrow ↔ Gatwick/Stansted" : "CDG ↔ Orly", f.chg) : ""}
       <div class="lcl tot2"><span>Per person</span><em></em><b>${usd(f.pp)}</b></div></div>`;
   }
   function compareLine(it) {
     const o = window.budgetFlightOptions(it.id);
-    return `<p class="bnote">Per person, as set: one ticket ${usd(o.through)} · via London ${usd(o.london)} · via Paris ${usd(o.paris)} · via Amsterdam ${usd(o.amsterdam)}</p>`;
+    return `<p class="bnote">Per person, as set: one ticket ${usd(o.through)}${hubList().map(([h, n]) => ` · via ${n} ${usd(o[h])}`).join("")}</p>`;
+  }
+
+  function addons(it) {
+    if (!(it.extras || []).length) return "";
+    const b = st();
+    return `<div class="hl-h"><h4 class="bh" style="margin:0">Add stops to this route</h4>${seg("len", [["keep", `Keep ${tgt(it)} nights`], ["extend", "Extend the trip"]], b.len)}</div>
+      <div class="xs">${it.extras.map(x => { const on = !!b.ex[xKey(it, x)], d = extraDelta(it, x);
+        return `<button class="xo ${on ? "on" : ""}" data-x="${x[0]}"><span class="xo-h"><b>${esc(B.bases[x[0]].name)}</b><i>${on ? "✓ Added" : "+ Add"}</i></span>
+          <small>${xNights(it, x)} night${xNights(it, x) > 1 ? "s" : ""} · ${d >= 0 ? "+" : "−"}${k(Math.abs(d))}${b.len === "keep" ? " (nights taken from other stops)" : ""}</small><p>${esc(x[5])}</p></button>`; }).join("")}</div>`;
   }
 
   function renderBuild() {
@@ -182,8 +235,8 @@
       const base = B.bases[l.id], hi = hotelIdx(l.id), custom = b.hotelPrice[l.id];
       return `<div class="leg">
         <div class="leg-h"><span class="n">${idx + 1}</span>
-          <div class="leg-t"><b>${esc(base.name)}</b>${l.bookend ? `<small>${l.bookend === "start" ? "City stop at the start" : "City stop at the end"}</small>` : ""}</div>
-          ${l.main ? `<div class="step"><button data-n="${l.i}|-1" aria-label="fewer nights">−</button><span>${l.n} night${l.n > 1 ? "s" : ""}</span><button data-n="${l.i}|1" aria-label="more nights">+</button></div>` : `<div class="step"><span>${l.n} night${l.n > 1 ? "s" : ""}</span></div>`}
+          <div class="leg-t"><b>${esc(base.name)}</b>${l.bookend ? `<small>${l.bookend === "start" ? "City stop at the start" : "City stop at the end"}</small>` : ""}${l.extra ? `<small>Add-on · <button class="xrm" data-x="${l.id}">remove</button></small>` : ""}</div>
+          ${l.extra ? `<div class="step"><button data-xn="${l.id}|-1" aria-label="fewer nights">−</button><span>${l.n} night${l.n > 1 ? "s" : ""}</span><button data-xn="${l.id}|1" aria-label="more nights">+</button></div>` : l.main ? `<div class="step"><button data-n="${l.i}|-1" aria-label="fewer nights">−</button><span>${l.n} night${l.n > 1 ? "s" : ""}</span><button data-n="${l.i}|1" aria-label="more nights">+</button></div>` : `<div class="step"><span>${l.n} night${l.n > 1 ? "s" : ""}</span></div>`}
         </div>
         <div class="hrow"><select class="hsel" data-hotel="${l.id}">${base.hotels.map((h, i) => `<option value="${i}" ${i === hi ? "selected" : ""}>${esc(h[0])} · ${usd(h[1])}/night · ${esc(h[2])}</option>`).join("")}</select>
           <label class="hcust">or $<input type="number" min="0" step="10" inputmode="numeric" placeholder="${base.hotels[hi][1]}" value="${custom || ""}" data-hprice="${l.id}" aria-label="Custom nightly price">/night</label></div>
@@ -195,21 +248,24 @@
     const cityOpts = cur => `<option value="">None</option>` + B.bookendCities.map(cid => `<option value="${cid}" ${cur === cid ? "selected" : ""}>${B.bases[cid].name}${it.hubs.includes(cid) ? " (on your way)" : " (+ extra hop)"}</option>`).join("");
     $("#b-build").innerHTML = `
       <div class="bblk"><h3>${esc(it.name)}</h3><p class="bnote">${esc(it.how)}${it.why ? " " + esc(it.why) : ""}</p>
+        ${addons(it)}
         ${highlights(c.L)}
         ${c.L.map(legRow).join("")}
         ${transfersFor(it).length ? `<div class="trans">${transfersFor(it).map(t => `<span>${esc(t[0])} <em>${usd(t[1])} pp</em></span>`).join("")}</div>` : ""}
       </div>
 
-      ${it.domestic ? "" : `<div class="bblk"><h3>A day in a big city?</h3><p class="bnote">These nights come out of your first or last stop, so the trip stays at 8 nights.</p>
+      ${it.domestic ? "" : `<div class="bblk"><h3>A day in a big city?</h3><p class="bnote">${b.len === "keep" ? "These nights come out of your first or last stop, so the trip length stays the same." : "These nights extend the trip."} Paris and Amsterdam are on the Air France / KLM path.</p>
         <div class="bk"><label>Start in<select data-bk="start">${cityOpts(b.start.c)}</select></label>${b.start.c ? seg("startn", [[1, "1 night"], [2, "2 nights"]], b.start.n) : ""}</div>
         <div class="bk"><label>End in<select data-bk="end">${cityOpts(b.end.c)}</select></label>${b.end.c ? seg("endn", [[1, "1 night"], [2, "2 nights"]], b.end.n) : ""}</div>
-        ${hubMode(it) ? `<p class="bnote">Tip: you're connecting through ${B.bases[b.hub].name}, so a night there costs no extra travel.</p>` : ""}
+        ${hubMode(it) ? `<p class="bnote">Tip: you're connecting through ${B.bases[curHub()].name}, so a night there costs no extra travel.</p>` : ""}
       </div>`}
 
       <div class="bblk"><h3>Flights</h3>
         <div class="brow"><span>From</span>${seg("origin", [["BOS", "Boston"], ["BWI", "Baltimore"]], b.origin)}</div>
+        ${it.domestic ? "" : `<div class="brow"><span>Airlines</span>${seg("air", [["sky", "Delta · Air France · KLM"], ["any", "Any airline"]], b.air)}</div>`}
+        ${!it.domestic && sky() && it.sky && !hubMode(it) ? `<div class="skyr"><small>Suggested routing</small>${esc(it.sky)}</div>` : ""}
         ${lccOk(it) ? `<div class="brow"><span>Ticket</span>${seg("ticket", [["through", "One ticket all the way"], ["hub", "Hub + low-cost"]], b.ticket)}</div>` : ""}
-        ${hubMode(it) ? `<div class="brow"><span>Hub</span>${seg("hub", [["london", "London"], ["paris", "Paris"], ["amsterdam", "Amsterdam"]], b.hub)}</div>` : ""}
+        ${hubMode(it) ? `<div class="brow"><span>Hub</span>${seg("hub", hubList(), curHub())}</div>` : ""}
         <div class="brow"><span>Cabin</span>${seg("cabin", Object.entries(cabins(it)).map(([v, x]) => [v, x[0]]), b.cabin)}</div>
         <div class="brow"><span>Booking</span>${seg("timing", Object.entries(TIMING).map(([v, x]) => [v, x[0]]), b.timing)}</div>
         ${hubMode(it) ? lccBox(it) : `<div class="brow"><span>Fare</span><label class="hcust">$<input type="number" min="0" step="10" inputmode="numeric" placeholder="${Math.round(it.flight[b.origin] * TIMING[b.timing][1])}" value="${b.fare[it.id] || ""}" data-fare="${it.id}">per person, economy round trip</label></div>`}
@@ -247,19 +303,22 @@
 
   function renderSum() {
     const b = st(), it = IT[b.it], c = compute(it);
-    const target = it.nightsTarget || B.nightsTarget, ok = c.nights === target;
+    const target = tgt(it), ok = c.nights === target, ext = b.len === "extend" && c.nights > target;
+    const arrive = new Date(2027, 2, target === 9 ? 12 : 13), home = new Date(arrive); home.setDate(home.getDate() + c.nights);
+    const fmtD = d => d.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
     $("#b-sum").innerHTML = `
       <div class="tot"><small>Estimated total for two</small><b>${usd(c.total)}</b><span>Likely range ${k(c.low)} – ${k(c.high)} · ${usd(c.total / 2)} per person · ${usd(c.total / Math.max(1, c.nights))} per night</span></div>
       <div class="stack">${CATS.map(([key, , col]) => `<i style="width:${c.parts[key] / c.total * 100}%;background:${col}"></i>`).join("")}</div>
       <table class="brk">${CATS.map(([key, l, col]) => `<tr><td><i style="background:${col}"></i>${l}</td><td>${usd(c.parts[key])}</td></tr>`).join("")}</table>
-      <div class="nchk ${ok ? "" : "warn"}">${ok ? `✓ ${c.nights} nights, ${target === 9 ? "Fri 12" : "Sat 13"} → Sun 21` : `${c.nights} nights. The dates fit ${target}, so adjust with − / +`}</div>
+      <div class="nchk ${ok || ext ? "" : "warn"}">${ok ? `✓ ${c.nights} nights, ${target === 9 ? "Fri 12" : "Sat 13"} → Sun 21` : ext ? `${c.nights} nights: ${fmtD(arrive)} → home ${fmtD(home)}. That's ${c.nights - target} extra day${c.nights - target > 1 ? "s" : ""} off.` : `${c.nights} nights. The dates fit ${target}, so adjust with − / +`}</div>
       ${c.dinners.length ? `<p class="bnote">Starred dinners: ${c.dinners.map(esc).join(", ")}</p>` : `<p class="bnote">Tap a restaurant under any stop to add it.</p>`}
       ${c.bookendHops ? `<p class="bnote">Includes ~$300 for each city stop that isn't on your flight path.</p>` : ""}`;
   }
 
   function render(id) {
     shell();
-    if (id && IT[id]) { st().it = id; save(); }
+    const [iid, add] = String(id || "").split("+");
+    if (IT[iid]) { st().it = iid; if (add) st().ex[iid + "|" + add] = true; save(); }
     renderIts(); renderBuild(); renderSum(); drawMap(); window.APP.hydrate($("#b-build"));
   }
   const full = () => { save(); renderIts(); renderBuild(); renderSum(); drawMap(); window.APP.hydrate($("#b-build")); };
@@ -270,7 +329,7 @@
   document.addEventListener("click", e => {
     if (!e.target.closest("#view-budget")) return;
     const b = st(), it = IT[b.it];
-    const x = e.target.closest("[data-it],[data-n],[data-dine],[data-set],[data-inc],[data-reset]");
+    const x = e.target.closest("[data-it],[data-n],[data-x],[data-xn],[data-dine],[data-set],[data-inc],[data-reset]");
     if (!x) return;
     if (x.dataset.it) { b.it = x.dataset.it; history.replaceState(null, "", "#/budget/" + b.it); }
     else if (x.dataset.n) {
@@ -278,10 +337,12 @@
       const arr = b.nights[it.id] || it.legs.map(l => l[1]);
       arr[i] = Math.max(1, Math.min(8, arr[i] + d)); b.nights[it.id] = arr;
     }
+    else if (x.dataset.x) { const key = it.id + "|" + x.dataset.x; b.ex[key] = !b.ex[key]; }
+    else if (x.dataset.xn) { const [base, d] = x.dataset.xn.split("|"), xx = it.extras.find(q => q[0] === base); b.xn[it.id + "|" + base] = Math.max(1, Math.min(5, xNights(it, xx) + +d)); }
     else if (x.dataset.dine) b.dine[x.dataset.dine] = !b.dine[x.dataset.dine];
     else if (x.dataset.inc) {
       const [key, d] = x.dataset.inc.split("|"), [lo, hi] = LIM[key];
-      if (key === "carDays") b.carDays[it.id] = Math.max(lo, Math.min(hi, carDays(it) + +d));
+      if (key === "carDays") b.carDays[it.id] = Math.max(lo, Math.min(hi + 6, baseCar(it) + +d));
       else b[key] = Math.max(lo, Math.min(hi, b[key] + +d));
     }
     else if (x.dataset.set) {

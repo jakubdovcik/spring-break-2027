@@ -454,6 +454,72 @@ window.TRIP = {
       ],
       photos: ["Charleston,_South_Carolina", "The_Battery_(Charleston)", "Middleton_Place", "Forsyth_Park", "Wormsloe_Historic_Site", "Angel_Oak", "Tybee_Island,_Georgia"],
       flights: { summary: "Direct domestic flights, about 2 h 30. Into Charleston, home from Savannah.", legs: [{ from: "BOS", to: "CHS", by: "JetBlue / Delta / American (check)", direct: true }, { from: "BWI", to: "CHS", by: "Southwest", direct: true }, { from: "SAV", to: "BOS", by: "JetBlue / Delta (check)", direct: true }, { from: "SAV", to: "BWI", by: "Southwest", direct: true }], searchIn: "CHS", searchOut: "SAV" }
+    },
+    {
+      id: "socal",
+      name: "Southern California",
+      region: "Palm Springs · Joshua Tree · Ojai · Santa Barbara",
+      proposedBy: "Wildcard",
+      color: "#C2803A",
+      wildcard: true,
+      domestic: true,
+      tagline: "Desert spa days and national parks, then a slow drive to the coast. Warm and sunny, with wildflowers in March.",
+      hero: "Joshua_Tree_National_Park",
+      unsplash: "joshua-tree",
+      weather: { hi: 24, lo: 9, rainDays: 4, daylight: "12h 00m", sea: 15, summary: "Desert days near 80°F and coast days in the mid-60s. Cool, starry nights. Wildflowers in the desert." },
+      scores: { relax: 5, food: 4, cozy: 3, weather: 5, ease: 4 },
+      budget: "$$$$",
+      pros: ["Most reliable sunshine on the list", "National parks plus spa resorts", "Leave Friday for a 9th night, no jet lag (3 h time change)"],
+      cons: ["6 h flight for a domestic trip", "Lots of driving between stops", "Coast hotels are expensive"],
+      stops: [
+        { name: "Palm Springs", lat: 33.8303, lng: -116.5453, nights: 3, wiki: "Palm_Springs,_California", desc: "Pools, mid-century houses, palm canyons, the aerial tram." },
+        { name: "Joshua Tree National Park", lat: 33.8734, lng: -115.901, nights: 0, wiki: "Joshua_Tree_National_Park", desc: "Boulders, the trees, a huge night sky." },
+        { name: "Joshua Tree town", lat: 34.1347, lng: -116.3131, nights: 1, wiki: "Joshua_Tree,_California", desc: "Desert cabin with a hot tub and stargazing." },
+        { name: "Ojai", lat: 34.448, lng: -119.2429, nights: 2, wiki: "Ojai,_California", desc: "Spa valley, orange groves, the pink-moment sunset." },
+        { name: "Santa Barbara", lat: 34.4208, lng: -119.6982, nights: 3, wiki: "Santa_Barbara,_California", desc: "Red-roofed town by the beach, wine country inland." },
+        { name: "Channel Islands National Park", lat: 34.0069, lng: -119.7785, nights: 0, wiki: "Channel_Islands_National_Park", desc: "Boat from Ventura: sea caves, island foxes, whales." }
+      ],
+      days: [
+        { d: "Fri 12", t: "Fly BOS → LAX or Palm Springs (about 6 h). Drive to Palm Springs and catch the pool at sunset." },
+        { d: "Sat 13", t: "Pool and spa day. Evening ride up the aerial tram into the snow and pines." },
+        { d: "Sun 14", t: "Joshua Tree National Park: Hidden Valley loop, Cholla Cactus Garden, Keys View." },
+        { d: "Mon 15", t: "Morning palm oases at Indian Canyons, then to a Joshua Tree cabin for stargazing." },
+        { d: "Tue 16", t: "Sunrise in the park, then drive to Ojai (3 h)." },
+        { d: "Wed 17", t: "Spa at the Ojai Valley Inn. Watch the pink-moment sunset." },
+        { d: "Thu 18", t: "To Santa Barbara (40 min). Beach walk, Funk Zone wine tasting." },
+        { d: "Fri 19", t: "Channel Islands National Park: boat to Santa Cruz Island for sea caves and maybe whales." },
+        { d: "Sat 20", t: "Santa Ynez wine country, or a lazy Montecito morning." },
+        { d: "Sun 21", t: "Fly from Santa Barbara or LAX. Leave by late morning to be home that evening." }
+      ],
+      stays: [
+        { name: "Two Bunch Palms", place: "Desert Hot Springs", price: "$$$$", tag: "Hot-spring spa resort", why: "Mineral pools under palms, adults only. The most passive place on the list.", url: "https://www.google.com/search?q=Two+Bunch+Palms", highlight: true },
+        { name: "Parker Palm Springs", place: "Palm Springs", price: "$$$$", tag: "Jonathan Adler retreat", why: "Playful mid-century gardens, a spa and croquet.", url: "https://www.google.com/search?q=Parker+Palm+Springs" },
+        { name: "Korakia Pensione", place: "Palm Springs", price: "$$$", tag: "Moroccan villa", why: "Candlelit courtyards, no TVs.", url: "https://www.google.com/search?q=Korakia+Pensione" },
+        { name: "Ojai Valley Inn", place: "Ojai", price: "$$$$$", tag: "Spa resort", why: "A big Spanish-style spa among oaks and orange groves.", url: "https://www.google.com/search?q=Ojai+Valley+Inn", highlight: true },
+        { name: "San Ysidro Ranch", place: "Montecito", price: "$$$$$", tag: "Cottages with fireplaces", why: "Hillside cottages with private hot tubs. The cozy one.", url: "https://www.google.com/search?q=San+Ysidro+Ranch", highlight: true },
+        { name: "Hotel Californian", place: "Santa Barbara", price: "$$$$", tag: "By the beach", why: "Moorish-Spanish style next to the Funk Zone.", url: "https://www.google.com/search?q=Hotel+Californian+Santa+Barbara" },
+        { name: "The Inn at Death Valley", place: "Death Valley (add-on)", price: "$$$$", tag: "1927 oasis inn", why: "Spring-fed pool and palm gardens in the desert.", url: "https://www.google.com/search?q=Inn+at+Death+Valley" }
+      ],
+      eat: [
+        { name: "Caruso's", place: "Montecito (Rosewood Miramar)", stars: 1, note: "Coastal Italian on the beach. Check the latest California guide." },
+        { name: "Addison", place: "San Diego (add-on)", stars: 3, note: "Southern California's three-star restaurant." },
+        { name: "Olivella", place: "Ojai Valley Inn", stars: 0, note: "Italian, with vegetables from the valley." },
+        { name: "Loquita · Bettina", place: "Santa Barbara", stars: 0, note: "Spanish tapas and wood-fired pizza." },
+        { name: "Mr. Lyons · Workshop Kitchen", place: "Palm Springs", stars: 0, note: "Old-school steakhouse and a modern dining room." },
+        { name: "La Copine · Pappy & Harriet's", place: "Joshua Tree area", stars: 0, note: "Desert bistro and a honky-tonk with live music." }
+      ],
+      do: [
+        { t: "Mineral pools and spa days", relax: true },
+        { t: "Joshua Tree scenic drive and short walks", relax: true },
+        { t: "Stargazing from the cabin", relax: true },
+        { t: "Pink-moment sunset in Ojai", relax: true },
+        { t: "Wine tasting in Santa Ynez", relax: true },
+        { t: "Channel Islands boat day", relax: false },
+        { t: "Indian Canyons palm-oasis hike", relax: false },
+        { t: "Ryan Mountain summit (3 mi)", relax: false }
+      ],
+      photos: ["Joshua_Tree_National_Park", "Palm_Springs,_California", "Channel_Islands_National_Park", "Ojai,_California", "Santa_Barbara,_California", "Mission_Santa_Barbara", "Death_Valley_National_Park"],
+      flights: { summary: "Domestic: about 6 h out, 5 h 30 back. Into Palm Springs or LAX, out of Santa Barbara or LAX.", legs: [{ from: "BOS", to: "LAX", by: "Delta, JetBlue, American, United (direct)", direct: true }, { from: "BOS", to: "PSP", by: "Seasonal direct some years, otherwise 1 stop", direct: false }, { from: "BWI", to: "LAX", by: "Southwest direct, or Delta via ATL", direct: true }, { from: "SBA", to: "BOS / BWI", by: "1 stop (Delta via SLC, United via SFO/DEN)", direct: false }], searchIn: "PSP", searchOut: "LAX" }
     }
   ]
 };
