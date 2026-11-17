@@ -73,7 +73,7 @@
   /* Southern California trip */
   const i = B.itineraries.findIndex(x => x.id === "lowcountry");
   B.itineraries.splice(i + 1, 0, { id: "socal", kind: "single", name: "Southern California", color: "#C2803A", domestic: true, nightsTarget: 9,
-    legs: [["palmsprings", 3], ["joshuatree", 1], ["ojai", 2], ["santabarbara", 3]], car: 9, transfers: [], flight: { BOS: 450, BWI: 400 }, hubs: [],
+    legs: [["palmsprings", 3], ["joshuatree", 1], ["ojai", 2], ["santabarbara", 3]], car: 9, transfers: [], flight: { BOS: 620, BWI: 580 }, hubs: [],
     how: "Fly into Palm Springs or LAX on Friday, drive the desert first, then west to the coast. Fly home from LAX or Santa Barbara." });
 
   /* Add-ons per route */
