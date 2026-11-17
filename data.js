@@ -463,21 +463,23 @@ window.TRIP = {
       color: "#C2803A",
       wildcard: true,
       domestic: true,
-      tagline: "Desert spa days and national parks, then a slow drive to the coast. Warm and sunny, with wildflowers in March.",
+      tagline: "Desert spa days and national parks, a slow drive to the coast, and a last night in LA with Elizabeth's friends.",
+      friends: "Elizabeth's friends in LA",
       hero: "Joshua_Tree_National_Park",
       unsplash: "joshua-tree",
       weather: { hi: 24, lo: 9, rainDays: 4, daylight: "12h 00m", sea: 15, summary: "Desert days near 80°F and coast days in the mid-60s. Cool, starry nights. Wildflowers in the desert." },
       scores: { relax: 5, food: 4, cozy: 3, weather: 5, ease: 4 },
       budget: "$$$$",
-      pros: ["Most reliable sunshine on the list", "National parks plus spa resorts", "Leave Friday for a 9th night, no jet lag (3 h time change)"],
+      pros: ["Most reliable sunshine on the list", "Ends with an evening with Elizabeth's friends in LA", "National parks plus spa resorts", "Leave Friday for a 9th night, no jet lag (3 h time change)"],
       cons: ["6 h flight for a domestic trip", "Lots of driving between stops", "Coast hotels are expensive"],
       stops: [
         { name: "Palm Springs", lat: 33.8303, lng: -116.5453, nights: 3, wiki: "Palm_Springs,_California", desc: "Pools, mid-century houses, palm canyons, the aerial tram." },
         { name: "Joshua Tree National Park", lat: 33.8734, lng: -115.901, nights: 0, wiki: "Joshua_Tree_National_Park", desc: "Boulders, the trees, a huge night sky." },
         { name: "Joshua Tree town", lat: 34.1347, lng: -116.3131, nights: 1, wiki: "Joshua_Tree,_California", desc: "Desert cabin with a hot tub and stargazing." },
         { name: "Ojai", lat: 34.448, lng: -119.2429, nights: 2, wiki: "Ojai,_California", desc: "Spa valley, orange groves, the pink-moment sunset." },
-        { name: "Santa Barbara", lat: 34.4208, lng: -119.6982, nights: 3, wiki: "Santa_Barbara,_California", desc: "Red-roofed town by the beach, wine country inland." },
-        { name: "Channel Islands National Park", lat: 34.0069, lng: -119.7785, nights: 0, wiki: "Channel_Islands_National_Park", desc: "Boat from Ventura: sea caves, island foxes, whales." }
+        { name: "Santa Barbara", lat: 34.4208, lng: -119.6982, nights: 2, wiki: "Santa_Barbara,_California", desc: "Red-roofed town by the beach, wine country inland." },
+        { name: "Channel Islands National Park", lat: 34.0069, lng: -119.7785, nights: 0, wiki: "Channel_Islands_National_Park", desc: "Boat from Ventura: sea caves, island foxes, whales." },
+        { name: "Los Angeles · friends", lat: 34.0195, lng: -118.4912, nights: 1, wiki: "Los_Angeles", desc: "Last night with Elizabeth's friends. Santa Monica, close to LAX." }
       ],
       days: [
         { d: "Fri 12", t: "Fly BOS → LAX or Palm Springs (about 6 h). Drive to Palm Springs and catch the pool at sunset." },
@@ -487,9 +489,9 @@ window.TRIP = {
         { d: "Tue 16", t: "Sunrise in the park, then drive to Ojai (3 h)." },
         { d: "Wed 17", t: "Spa at the Ojai Valley Inn. Watch the pink-moment sunset." },
         { d: "Thu 18", t: "To Santa Barbara (40 min). Beach walk, Funk Zone wine tasting." },
-        { d: "Fri 19", t: "Channel Islands National Park: boat to Santa Cruz Island for sea caves and maybe whales." },
-        { d: "Sat 20", t: "Santa Ynez wine country, or a lazy Montecito morning." },
-        { d: "Sun 21", t: "Fly from Santa Barbara or LAX. Leave by late morning to be home that evening." }
+        { d: "Fri 19", t: "Channel Islands National Park: boat to Santa Cruz Island for sea caves and maybe whales. Or Santa Ynez wine country." },
+        { d: "Sat 20", t: "Down the coast to LA through Malibu (1 h 45). Getty or Griffith in the afternoon, then the evening with Elizabeth's friends." },
+        { d: "Sun 21", t: "Fly LAX → BOS/BWI by late morning, home that evening." }
       ],
       stays: [
         { name: "Two Bunch Palms", place: "Desert Hot Springs", price: "$$$$", tag: "Hot-spring spa resort", why: "Mineral pools under palms, adults only. The most passive place on the list.", url: "https://www.google.com/search?q=Two+Bunch+Palms", highlight: true },

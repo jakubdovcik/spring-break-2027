@@ -131,7 +131,7 @@
     const els = root.querySelectorAll(".blk, .card, .combo");
     const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -6% 0px" });
     els.forEach((el, i) => { el.classList.add("rv"); if (!el.classList.contains("blk")) el.style.transitionDelay = (i % 4) * 70 + "ms"; io.observe(el); });
-    setTimeout(() => els.forEach(el => el.classList.add("in")), 3000); // never leave anything hidden
+    setTimeout(() => els.forEach(el => el.classList.add("in")), 1500); // never leave anything hidden
   }
 
   /* ---------------- explore: list ---------------- */
@@ -141,7 +141,7 @@
       const va = vote(d.id, "a"), vb = vote(d.id, "b");
       return `<article class="card" data-go="#/d/${d.id}">
         <div class="ph"><img data-wiki="${esc(d.hero)}" alt="${esc(d.name)}" loading="lazy">
-          <span class="badge">${d.wildcard ? "Wildcard" : (d.proposedBy === "Him" ? S.names.a : S.names.b) + "'s idea"}</span>
+          <span class="badge">${d.wildcard ? "Wildcard" : (d.proposedBy === "Him" ? S.names.a : S.names.b) + "'s idea"}</span>${d.friends ? `<span class="badge fr">♥ ${esc(d.friends)}</span>` : ""}
           <div class="heart-row">${va ? `<span class="hb on">${esc(S.names.a[0])} ${va}/5</span>` : ""}${vb ? `<span class="hb on">${esc(S.names.b[0])} ${vb}/5</span>` : ""}${status(d.id) === "short" ? `<span class="hb">★</span>` : ""}</div>
         </div>
         <div class="meta"><div><h3>${esc(d.name)}</h3><div class="sub">${esc(d.region)}</div>${(window.THEMES || {})[d.id] ? `<div class="cvibe" style="color:${window.THEMES[d.id].accent}">${esc(window.THEMES[d.id].vibe.split(" · ").slice(0, 2).join(" · "))}</div>` : ""}<div class="line">${nights(d)} nights · ${d.stays.length} stays · ${d.eat.filter(e => e.stars).length} starred tables</div></div>
@@ -191,6 +191,33 @@
     const it = window.BUDGET.itineraries.find(i => i.id === id);
     return it && it.sky ? `<div class="skyr" style="margin:0 0 12px"><small>${it.domestic ? "Suggested" : "Preferred: Delta · Air France · KLM"}</small>${esc(it.sky)}</div>` : "";
   }
+  /* ---------------- Discover: what's special, with filters ---------------- */
+  const DCAT = { nature: "Nature", culture: "Culture & history", food: "Food & drink", town: "Towns & villages", people: "Friends" };
+  const DEFF = { passive: "Sit back", easy: "Easy walk", active: "Active" };
+  function discoverBlock(d) {
+    const X = window.DISCOVER && window.DISCOVER[d.id]; if (!X) return "";
+    const cats = Object.keys(DCAT).filter(c => X.items.some(i => i[1] === c));
+    const effs = Object.keys(DEFF).filter(e => X.items.some(i => i[3] === e));
+    const B = window.BUDGET;
+    return `<div class="blk" id="s-disc"><h2>What makes it special</h2>
+      <div class="spec">${X.special.map(([t, s]) => `<div><b>${esc(t)}</b><p>${esc(s)}</p></div>`).join("")}</div>
+      <h3 class="wx-h">Explore: ${X.items.length} things to see and do</h3>
+      <div class="dfil"><div class="bseg" data-dgroup="cat"><button class="on" data-dcat="all">All</button>${cats.map(c => `<button data-dcat="${c}">${DCAT[c]}</button>`).join("")}</div>
+        <div class="bseg" data-dgroup="eff"><button class="on" data-deff="all">Any pace</button>${effs.map(e => `<button data-deff="${e}">${DEFF[e]}</button>`).join("")}</div></div>
+      <p class="dcount bnote"></p>
+      <div class="dlist">${X.items.map(([n, cat, base, eff, time, wiki, text, tip]) => `<article class="di" data-cat="${cat}" data-eff="${eff}">
+        <a class="di-ph" href="${wikiUrl(wiki)}" target="_blank" rel="noopener"><img data-wiki="${esc(wiki)}" alt="${esc(n)}" loading="lazy"></a>
+        <div class="di-b"><div class="di-m"><span class="di-cat ${cat}">${DCAT[cat]}</span><span>${DEFF[eff]}</span><span>${esc(time)}</span><span>near ${esc((B.bases[base] || {}).name || "")}</span></div>
+          <h4>${esc(n)}</h4><p>${esc(text)}</p>${tip ? `<p class="di-tip"><b>Tip</b> ${esc(tip)}</p>` : ""}</div></article>`).join("")}</div></div>`;
+  }
+  function filterDiscover() {
+    const box = document.getElementById("s-disc"); if (!box) return;
+    const cat = box.querySelector("[data-dcat].on").dataset.dcat, eff = box.querySelector("[data-deff].on").dataset.deff;
+    let n = 0;
+    box.querySelectorAll(".di").forEach(el => { const show = (cat === "all" || el.dataset.cat === cat) && (eff === "all" || el.dataset.eff === eff); el.style.display = show ? "" : "none"; if (show) n++; });
+    box.querySelector(".dcount").textContent = n ? `Showing ${n}` : "Nothing matches. Try another filter.";
+  }
+
   function transportBlock(id) {
     const segs = window.budgetSegments(id);
     if (!segs.length) return "";
@@ -227,9 +254,11 @@
       <div class="strip">${d.photos.slice(1, 7).map(p => `<a href="${wikiUrl(p)}" target="_blank" rel="noopener"><img data-wiki="${esc(p)}" alt="${esc(pretty(p))}" loading="lazy"><span>${esc(pretty(p))}</span></a>`).join("")}<a class="strip-more" href="https://unsplash.com/s/photos/${d.unsplash}" target="_blank" rel="noopener">More photos ↗</a></div>
       <p class="tagline lead">${esc(d.tagline)}</p>
       <div class="d-head"><a class="btn dark" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>${rateWidget(d.id)}</div>
-      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-route">Route</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
+      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-disc">Discover</a><a href="#s-route">Route</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
 
       <div class="blk" id="s-see"><h2>Highlights: nature &amp; sights</h2>${highlightTiles(d.id)}</div>
+
+      ${discoverBlock(d)}
 
       <div class="blk" id="s-route"><h2>Route sketch</h2>
         <div class="stops">${d.stops.map((s, i) => `<button class="stop" data-stop="${i}"><span class="n" style="background:${d.color}">${i + 1}</span>${esc(s.name)} <em>${s.nights ? s.nights + "n" : "stop"}</em></button>`).join("")}</div>
@@ -276,6 +305,7 @@
       </div>`;
     hydrateImgs($("#list"));
     reveal($("#list"));
+    filterDiscover();
     drawOne(d);
     window.scrollTo({ top: 0 });
   }
@@ -465,10 +495,13 @@
     const jump = e.target.closest("a[href^=\"#s-\"]");
     if (jump) {
       e.preventDefault();
+      document.querySelectorAll(".rv:not(.in)").forEach(x => x.classList.add("in")); // never jump to a still-hidden section
       const el = document.getElementById(jump.getAttribute("href").slice(1));
       if (el) { const top = (document.querySelector(".top").offsetHeight || 0) + (document.querySelector(".subnav") ? document.querySelector(".subnav").offsetHeight : 0) + 8; window.smoothTo(el, top); }
       return;
     }
+    const df = e.target.closest("[data-dcat],[data-deff]");
+    if (df) { df.parentElement.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === df)); filterDiscover(); return; }
     const v = e.target.closest("[data-vote]");
     if (v) { e.stopPropagation(); const [id, who, n] = v.dataset.vote.split("|"); setVote(id, who, +n); const wrap = v.closest(".rate"); wrap.outerHTML = rateWidget(id); if ($("#view-compare").classList.contains("on")) renderCompare(); return; }
     const nav = e.target.closest("#nav button"); if (nav) { go(nav.dataset.view === "explore" ? "#/" : "#/" + nav.dataset.view); return; }

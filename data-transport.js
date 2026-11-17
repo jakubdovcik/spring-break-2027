@@ -115,5 +115,5 @@ window.BUDGET.segs = {
   "deathvalley>ojai": [["car", 5, 0, "A long day via Lone Pine and Mojave. Mt Whitney views on the way."]],
   "santabarbara>bigsur": [["car", 3.5, 0, "US-101, then Highway 1 north from Cambria. Check Caltrans for closures."]],
   "santabarbara>losangeles": [["car", 1.8, 0, "PCH through Malibu."], ["train", 2.5, 35, "Amtrak Pacific Surfliner, right along the beach."]],
-  "bigsur>losangeles": [["car", 6, 0, "Long. It's often better to fly home from Monterey or San José."]]
+  "bigsur>losangeles": [["car", 6, 0, "About 6 h down Highway 1 and the 101. Break it with lunch in Cambria or Santa Barbara to reach LA for the evening."]]
 };
