@@ -10,7 +10,7 @@
   const CAR = { compact: ["Compact", 1], suv: ["SUV / estate", 1.35], premium: ["Premium", 1.8] };
   const TAXI = { transit: ["Trains & buses", 50], taxi: ["Taxis", 140], driver: ["Private drivers", 420] };
   const DEF = () => ({
-    it: "spain", origin: "BOS", cabin: "eco", timing: "typical", fare: {}, bags: 2, ticket: "through", hub: "paris", air: "sky", ex: {}, xn: {}, len: "keep",
+    it: "spain", origin: "BOS", cabin: "eco", timing: "typical", fare: {}, bags: 2, ticket: "through", hub: "paris", air: "sky", ex: {}, xn: {}, len: "keep", seg: {},
     nights: {}, hotel: {}, hotelPrice: {}, dine: {}, nice: 3,
     start: { c: "", n: 1 }, end: { c: "", n: 1 },
     carOn: {}, carDays: {}, carCls: "compact", taxi: "taxi",
@@ -85,6 +85,37 @@
     return on - off;
   }
 
+  /* ---------------- getting between stops ---------------- */
+  const MODE = { car: "Car", train: "Train", bus: "Bus", flight: "Flight", ferry: "Ferry" };
+  const hav = (p, q) => { const R = 6371, r = Math.PI / 180, dl = (q.lat - p.lat) * r, dg = (q.lng - p.lng) * r;
+    const a = Math.sin(dl / 2) ** 2 + Math.cos(p.lat * r) * Math.cos(q.lat * r) * Math.sin(dg / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(a)); };
+  function segOpts(a, z) {
+    const S = B.segs || {};
+    const o = S[a + ">" + z] || S[z + ">" + a];
+    if (o) return o;
+    const km = hav(B.bases[a], B.bases[z]) * 1.3;
+    if (km > 650) return [["flight", Math.round(km / 600 + 2.5), 0, "Long hop: fly or take a fast train. Costed under city stops and transfers; see the Flights tab.", "incl"]];
+    return [["car", Math.max(.3, Math.round(km / 70 * 10) / 10), 0, `About ${Math.round(km)} km by road. Estimated from distance.`]];
+  }
+  const fmtH = h => h < 1 ? `${Math.round(h * 60)} min` : `${Math.floor(h)} h${Math.round((h % 1) * 60) ? " " + Math.round((h % 1) * 60) : ""}`;
+  const segCost = o => o[4] === "incl" ? 0 : o[0] === "car" ? o[2] : o[2] * 2;
+  const segLabel = o => o[4] === "incl" ? "priced in transfers" : o[0] === "car" ? (o[2] ? `tolls ~${usd(o[2])}` : "no tolls") : `${usd(o[2])} pp`;
+  function segments(it, Lg) {
+    const L = Lg || legs(it), out = [];
+    for (let i = 0; i < L.length - 1; i++) {
+      const a = L[i].id, z = L[i + 1].id, key = a + ">" + z, opts = segOpts(a, z);
+      const idx = Math.min(st().seg[key] || 0, opts.length - 1);
+      out.push({ a, z, key, opts, idx, o: opts[idx] });
+    }
+    return out;
+  }
+  /* for Explore pages: the default route, every option shown */
+  window.budgetSegments = id => {
+    const it = IT[id]; if (!it) return [];
+    return segments(it, it.legs.map(l => ({ id: l[0] }))).map(s => ({ from: B.bases[s.a].name, to: B.bases[s.z].name,
+      opts: s.opts.map(o => ({ mode: MODE[o[0]], time: fmtH(o[1]), cost: segLabel(o), note: o[3] })) }));
+  };
+
   /* one dot per night, grouped by stop: a quiet way to show the shape of a route */
   const glyph = ns => `<span class="ng">${ns.map(n => `<span>${"<i></i>".repeat(Math.max(0, n))}</span>`).join("")}</span>`;
   window.nightsGlyph = glyph;
@@ -96,7 +127,12 @@
       const leg = { id: x[0], n: xNights(it, x), extra: true, x };
       if (x[2] === "start") out.unshift(leg);
       else if (x[2] === "end") out.push(leg);
-      else { const at = out.findIndex(l => l.id === x[2].slice(6)); out.splice(at >= 0 ? at + 1 : out.length, 0, leg); }
+      else {
+        let at = out.findIndex(l => l.id === x[2].slice(6));
+        if (at < 0) at = out.length - 1;
+        while (out[at + 1] && out[at + 1].extra && out[at + 1].x[2] === x[2]) at++;
+        out.splice(at + 1, 0, leg);
+      }
     });
     if (b.len === "keep") { // make room: take nights from the longest main stops
       let need = extrasOn(it).reduce((a, x) => a + xNights(it, x), 0);
@@ -130,13 +166,14 @@
     const bookendHops = it.domestic ? 0 : [b.start.c, b.end.c].filter(c => c && !hubsNow.includes(c)).length;
     const car = carOn(it) ? carDays(it) * B.carPerDay * CAR[b.carCls][1] : 0;
     const noCarExtra = !carOn(it) && carDays(it) ? carDays(it) * 45 : 0;
-    const transport = car + noCarExtra + transfersFor(it).reduce((a, t) => a + t[1] * 2, 0) + TAXI[b.taxi][1] + (b.start.c || b.end.c ? 60 : 0);
+    const segs = segments(it, L), segSum = segs.reduce((a, s) => a + segCost(s.o), 0), travelH = segs.reduce((a, s) => a + s.o[1], 0);
+    const transport = car + noCarExtra + transfersFor(it).reduce((a, t) => a + t[1] * 2, 0) + TAXI[b.taxi][1] + (b.start.c || b.end.c ? 60 : 0) + segSum;
     const fun = b.spaN * 190 + b.tours * 140 + b.shopping;
     const parts = { flights, hotels: hotels * fx, dining: dining * fx, daily: daily * fx, transport: transport * fx + bookendHops * 300, fun: fun * fx, safety: 0 };
     const sub = Object.values(parts).reduce((a, x) => a + x, 0);
     parts.safety = (b.ins ? (flights + parts.hotels) * B.insurancePct : 0) + sub * b.buffer / 100;
     const total = sub + parts.safety;
-    return { L, nights, parts, total, low: total * .85, high: total * 1.2, dinners, bookendHops };
+    return { L, nights, parts, total, low: total * .85, high: total * 1.2, dinners, bookendHops, segs, travelH };
   }
 
   /* ---------------- render ---------------- */
@@ -229,6 +266,17 @@
           <small>${xNights(it, x)} night${xNights(it, x) > 1 ? "s" : ""} · ${d >= 0 ? "+" : "−"}${k(Math.abs(d))}${b.len === "keep" ? " (nights taken from other stops)" : ""}</small><p>${esc(x[5])}</p></button>`; }).join("")}</div>`;
   }
 
+  function segBlock(segs) {
+    if (!segs.length) return "";
+    const totalH = segs.reduce((a, s) => a + s.o[1], 0);
+    return `<div class="hl-h" style="margin-top:18px"><h4 class="bh" style="margin:0">Getting between stops</h4><span class="bnote" style="margin:0">≈ ${fmtH(totalH)} of travel in total</span></div>
+      <div class="sgs">${segs.map(s => `<div class="sg">
+        <div class="sg-h"><b>${esc(B.bases[s.a].name)} → ${esc(B.bases[s.z].name)}</b>
+          ${s.opts.length > 1 ? `<div class="bseg">${s.opts.map((o, i) => `<button data-sg="${s.key}|${i}" class="${i === s.idx ? "on" : ""}">${MODE[o[0]]}</button>`).join("")}</div>` : `<span class="sg-one">${MODE[s.o[0]]}</span>`}</div>
+        <div class="sg-m"><span>${fmtH(s.o[1])}</span><span>${segLabel(s.o)}</span>${s.opts.length > 1 ? `<span class="sg-alt">${s.opts.filter((o, i) => i !== s.idx).map(o => `${MODE[o[0]]} ${fmtH(o[1])}`).join(" · ")}</span>` : ""}</div>
+        <p>${esc(s.o[3])}</p></div>`).join("")}</div>`;
+  }
+
   function renderBuild() {
     const b = st(), it = IT[b.it], c = compute(it);
     const legRow = (l, idx) => {
@@ -251,6 +299,7 @@
         ${addons(it)}
         ${highlights(c.L)}
         ${c.L.map(legRow).join("")}
+        ${segBlock(c.segs)}
         ${transfersFor(it).length ? `<div class="trans">${transfersFor(it).map(t => `<span>${esc(t[0])} <em>${usd(t[1])} pp</em></span>`).join("")}</div>` : ""}
       </div>
 
@@ -311,6 +360,7 @@
       <div class="stack">${CATS.map(([key, , col]) => `<i style="width:${c.parts[key] / c.total * 100}%;background:${col}"></i>`).join("")}</div>
       <table class="brk">${CATS.map(([key, l, col]) => `<tr><td><i style="background:${col}"></i>${l}</td><td>${usd(c.parts[key])}</td></tr>`).join("")}</table>
       <div class="nchk ${ok || ext ? "" : "warn"}">${ok ? `✓ ${c.nights} nights, ${target === 9 ? "Fri 12" : "Sat 13"} → Sun 21` : ext ? `${c.nights} nights: ${fmtD(arrive)} → home ${fmtD(home)}. That's ${c.nights - target} extra day${c.nights - target > 1 ? "s" : ""} off.` : `${c.nights} nights. The dates fit ${target}, so adjust with − / +`}</div>
+      <p class="bnote">≈ ${fmtH(c.travelH)} of travel between stops${c.segs.some(s => s.o[0] !== "car") && carOn(IT[b.it]) ? ". Some legs are by train or bus, so you may need the car for fewer days" : ""}.</p>
       ${c.dinners.length ? `<p class="bnote">Starred dinners: ${c.dinners.map(esc).join(", ")}</p>` : `<p class="bnote">Tap a restaurant under any stop to add it.</p>`}
       ${c.bookendHops ? `<p class="bnote">Includes ~$300 for each city stop that isn't on your flight path.</p>` : ""}`;
   }
@@ -329,7 +379,7 @@
   document.addEventListener("click", e => {
     if (!e.target.closest("#view-budget")) return;
     const b = st(), it = IT[b.it];
-    const x = e.target.closest("[data-it],[data-n],[data-x],[data-xn],[data-dine],[data-set],[data-inc],[data-reset]");
+    const x = e.target.closest("[data-it],[data-n],[data-x],[data-xn],[data-sg],[data-dine],[data-set],[data-inc],[data-reset]");
     if (!x) return;
     if (x.dataset.it) { b.it = x.dataset.it; history.replaceState(null, "", "#/budget/" + b.it); }
     else if (x.dataset.n) {
@@ -339,6 +389,7 @@
     }
     else if (x.dataset.x) { const key = it.id + "|" + x.dataset.x; b.ex[key] = !b.ex[key]; }
     else if (x.dataset.xn) { const [base, d] = x.dataset.xn.split("|"), xx = it.extras.find(q => q[0] === base); b.xn[it.id + "|" + base] = Math.max(1, Math.min(5, xNights(it, xx) + +d)); }
+    else if (x.dataset.sg) { const [key, i] = x.dataset.sg.split("|"); b.seg[key] = +i; }
     else if (x.dataset.dine) b.dine[x.dataset.dine] = !b.dine[x.dataset.dine];
     else if (x.dataset.inc) {
       const [key, d] = x.dataset.inc.split("|"), [lo, hi] = LIM[key];

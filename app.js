@@ -177,6 +177,14 @@
     const it = window.BUDGET.itineraries.find(i => i.id === id);
     return it && it.sky ? `<div class="skyr" style="margin:0 0 12px"><small>${it.domestic ? "Suggested" : "Preferred: Delta · Air France · KLM"}</small>${esc(it.sky)}</div>` : "";
   }
+  function transportBlock(id) {
+    const segs = window.budgetSegments(id);
+    if (!segs.length) return "";
+    return `<div class="blk" id="s-move"><h2>Getting around</h2>
+      <p class="legend" style="margin:-8px 0 14px">Stop by stop, with time and rough cost. The first option is my pick. You can switch any leg in the budget, and add-ons add their own legs there.</p>
+      <div class="sgs">${segs.map(s => `<div class="sg"><div class="sg-h"><b>${esc(s.from)} → ${esc(s.to)}</b></div>
+        ${s.opts.map((o, i) => `<div class="sg-o ${i ? "alt" : ""}"><span class="sg-one">${o.mode}</span><span>${o.time}</span><span>${o.cost}</span><p>${esc(o.note)}</p></div>`).join("")}</div>`).join("")}</div></div>`;
+  }
   function addonCards(id) {
     const xs = window.budgetExtras(id);
     if (!xs.length) return "";
@@ -198,7 +206,7 @@
       <div class="facts"><span><b>${nights(d)}</b> nights</span><span><b>${d.stops.filter(s => s.nights).length}</b> bases</span><span><b>${d.weather.hi}° / ${d.weather.lo}°C</b></span><span><b>~${d.weather.rainDays}</b> rainy days/mo</span><span><b>${starred.length}</b> Michelin-starred</span><span><b>${d.budget}</b></span></div>
       <p class="tagline">${esc(d.tagline)}</p>
       <a class="btn dark" style="margin:-4px 0 18px" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>
-      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-route">Route</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
+      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-route">Route</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
 
       <div class="blk" id="s-see"><h2>Highlights: nature &amp; sights</h2>${highlightTiles(d.id)}</div>
 
@@ -207,6 +215,7 @@
         <ol class="days">${d.days.map(x => `<li><span class="dd">${esc(x.d)}</span><span class="tt">${esc(x.t)}</span></li>`).join("")}</ol>
       </div>
 
+      ${transportBlock(d.id)}
       ${addonCards(d.id)}
 
       <div class="blk" id="s-stay"><h2>Where to stay</h2>
