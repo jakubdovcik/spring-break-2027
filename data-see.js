@@ -11,7 +11,7 @@ window.SEE = {
     ["Casco Viejo", "town", "Plaza_Nueva,_Bilbao", "Seven old streets and Plaza Nueva pintxos."]
   ],
   sansebastian: [
-    ["La Concha bay", "nature", "San_Sebastián", "The town beach in a perfect shell-shaped bay."],
+    ["La Concha bay", "nature", "San_Sebastián", "Town beach in a shell-shaped bay."],
     ["Monte Igueldo", "nature", "Igeldo", "1912 funicular to the best view of the bay."],
     ["Flysch cliffs, Zumaia", "nature", "Zumaia", "Rock layers like book pages, from a boat or the cliff path."],
     ["Getaria", "town", "Getaria,_Gipuzkoa", "Fishing village, txakoli vineyards above the sea."],
@@ -57,7 +57,7 @@ window.SEE = {
   ],
   luberon: [
     ["Gordes", "town", "Gordes", "Stone village on a cliff."],
-    ["Sénanque Abbey", "sight", "Sénanque_Abbey", "Cistercian abbey in a hidden valley."],
+    ["Sénanque Abbey", "sight", "Sénanque_Abbey", "Cistercian abbey in a narrow valley."],
     ["Ochre cliffs, Roussillon", "nature", "Roussillon,_Vaucluse", "Red and orange earth trails."],
     ["Colorado Provençal", "nature", "Rustrel", "Old ochre quarries, like a small canyon."],
     ["Lourmarin", "town", "Lourmarin", "Château, Friday market, Camus's grave."]
@@ -73,7 +73,7 @@ window.SEE = {
     ["Edinburgh Castle", "sight", "Edinburgh_Castle", "On its rock above the Old Town."],
     ["Dean Village", "town", "Dean_Village", "Mill village on the Water of Leith."],
     ["Royal Botanic Garden", "nature", "Royal_Botanic_Garden_Edinburgh", "Victorian glasshouses and the rock garden."],
-    ["Calton Hill", "nature", "Calton_Hill", "The postcard view at sunset."]
+    ["Calton Hill", "nature", "Calton_Hill", "The classic view over the city at sunset."]
   ],
   gleneagles: [
     ["Glen Devon & the Ochils", "nature", "Ochil_Hills", "Rolling hills from the hotel's doorstep."],
@@ -98,7 +98,7 @@ window.SEE = {
     ["Belém", "sight", "Belém_Tower", "The tower, the monastery, pastéis de Belém."]
   ],
   comporta: [
-    ["Comporta beaches", "nature", "Comporta", "Endless dunes and empty sand."],
+    ["Comporta beaches", "nature", "Comporta", "Long dunes and empty beaches."],
     ["Sado estuary dolphins", "nature", "Sado_Estuary_Natural_Reserve", "Resident bottlenose dolphins, boat from Setúbal."],
     ["Carrasqueira stilt pier", "sight", "Alcácer_do_Sal", "Fishermen's pier on stilts over the mud."]
   ],

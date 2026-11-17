@@ -151,7 +151,7 @@
     const main = D.filter(d => !d.wildcard && status(d.id) !== "out"), wild = D.filter(d => d.wildcard && status(d.id) !== "out");
     const out = D.filter(d => status(d.id) === "out");
     $("#list").innerHTML = `
-      <div class="cover"><small>${T.window.label} · ${esc(S.names.a)} &amp; ${esc(S.names.b)}</small><h1>Where to, in March?</h1><p>${D.length} ways to spend a slow spring week. Open one to step inside it.</p></div>
+      <div class="cover"><small>${T.window.label} · ${esc(S.names.a)} &amp; ${esc(S.names.b)}</small><h1>Where to, in March?</h1><p>${D.length} ways to spend a slow spring week. Open one for the route, hotels, food and costs.</p></div>
       <div class="section-h"><h2>Three ideas on the table</h2><p>${T.window.label} · 8 nights</p></div>
       <div class="grid">${main.map(card).join("")}</div>
       <div class="section-h" style="margin-top:40px"><h2>Ones we hadn't considered</h2><p>Mid-March, Boston-friendly</p></div>

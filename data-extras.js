@@ -45,7 +45,7 @@
 
   Object.assign(SEE, {
     glasgow: [["Kelvingrove", "sight", "Kelvingrove_Art_Gallery_and_Museum", "Free museum: Dalí, Mackintosh, a pipe organ."], ["Loch Lomond", "nature", "Loch_Lomond", "Forty minutes north. Lochside walks and boats."], ["West End", "town", "University_of_Glasgow", "Gothic university, Ashton Lane bars."]],
-    glencoe: [["Glen Coe", "nature", "Buachaille_Etive_Mòr", "Scotland's most dramatic glen, no hiking needed."], ["Glenfinnan Viaduct", "sight", "Glenfinnan_Viaduct", "The curved viaduct above Loch Shiel."], ["Ben Nevis", "nature", "Ben_Nevis", "Britain's highest peak, snow-capped in March."]],
+    glencoe: [["Glen Coe", "nature", "Buachaille_Etive_Mòr", "Steep, bare mountains on both sides of the road. No hiking needed."], ["Glenfinnan Viaduct", "sight", "Glenfinnan_Viaduct", "The curved viaduct above Loch Shiel."], ["Ben Nevis", "nature", "Ben_Nevis", "Britain's highest peak, snow-capped in March."]],
     skye: [["Old Man of Storr", "nature", "Old_Man_of_Storr", "Rock pinnacle, about an hour's walk up."], ["Quiraing", "nature", "Quiraing", "Landslip landscape, views from the road."], ["Fairy Pools", "nature", "Fairy_Pools", "Clear blue pools under the Cuillin."]],
     inverness: [["Loch Ness", "nature", "Loch_Ness", "Boat out to Urquhart Castle."], ["Culloden", "sight", "Culloden_Battlefield", "The 1746 battlefield."], ["Cawdor Castle", "sight", "Cawdor_Castle", "Macbeth's castle, by name at least."]],
     rioja: [["Laguardia", "town", "Laguardia,_Álava", "Walled hill town with wine cellars underneath."], ["Rioja vineyards", "nature", "Rioja_(wine)", "Vines below the Cantabrian mountains."], ["Haro wineries", "sight", "Haro,_La_Rioja", "The old bodega district by the station."]],
@@ -79,7 +79,7 @@
   /* Add-ons per route */
   const X = {
     glasgow: ["glasgow", 1, "start", 0, 0, "A city night first: museums and West End pubs. Train to Edinburgh takes 50 min."],
-    glencoe: ["glencoe", 2, "after:gleneagles", 2, 0, "Mountains, lochs, the Glenfinnan viaduct. The most dramatic scenery here."],
+    glencoe: ["glencoe", 2, "after:gleneagles", 2, 0, "Mountains, lochs and the Glenfinnan viaduct. The biggest scenery on this route."],
     skye: ["skye", 2, "after:gleneagles", 2, 0, "Island landscapes and seafood. Long drives (about 5 h from Edinburgh)."],
     inverness: ["inverness", 1, "after:braemar", 1, 0, "Loch Ness and Culloden, on the way round the Cairngorms."],
     rioja: ["rioja", 1, "after:bilbao", 1, 0, "Wine-country night at Marqués de Riscal, 1 h 30 from Bilbao."],

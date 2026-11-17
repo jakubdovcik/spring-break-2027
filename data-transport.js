@@ -46,7 +46,7 @@ window.BUDGET.segs = {
   "braemar>standrews": [["car", 2, 0, "Back over Glenshee to Perth, then into Fife. The coast route via Aberdeen takes about 3 h."]],
   "glasgow>edinburgh": [["train", 0.9, 20, "ScotRail Queen Street → Waverley every 15 min."], ["car", 1.2, 0, "M8. Not worth it unless you collect the car here."]],
   "gleneagles>glencoe": [
-    ["car", 2, 0, "A85/A82 through Crianlarich and across Rannoch Moor into Glen Coe. Stunning."],
+    ["car", 2, 0, "A85/A82 through Crianlarich and across Rannoch Moor into Glen Coe. One of the best drives in Scotland."],
     ["train", 3.8, 40, "West Highland Line from Glasgow to Fort William, one of the world's great rail journeys (via Glasgow from Gleneagles)."]
   ],
   "glencoe>skye": [["car", 2.5, 0, "The Road to the Isles past Eilean Donan Castle and over the Skye Bridge."]],

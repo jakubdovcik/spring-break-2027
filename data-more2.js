@@ -42,7 +42,7 @@
 
   /* ---------------- Azores ---------------- */
   add("pico", { name: "Pico & Faial", lat: 38.4626, lng: -28.2706, f: .75, hotels: [["Lava Homes", 180, "Basalt cottages facing the volcano"], ["Aldeia da Fonte", 140, "Sea-cliff cottages"]], dine: [["Ancoradouro", 80, 0]] },
-    [["Mount Pico", "nature", "Mount_Pico", "Portugal's highest peak, a perfect cone."], ["Pico vineyards", "nature", "Landscape_of_the_Pico_Island_Vineyard_Culture", "UNESCO vines in black lava walls."]],
+    [["Mount Pico", "nature", "Mount_Pico", "Portugal's highest peak, an almost symmetrical cone."], ["Pico vineyards", "nature", "Landscape_of_the_Pico_Island_Vineyard_Culture", "UNESCO vines in black lava walls."]],
     [17, 12, .50, .25, .88, .08, 0, .30, 0]);
   add("mosteiros", { name: "West coast · Mosteiros", lat: 37.89, lng: -25.82, f: .7, hotels: [["Quinta da Atafona", 130, "Farm cottages near Sete Cidades"], ["Sea-view guesthouse", 100, "Simple"]], dine: [["Restaurant in Mosteiros", 60, 0]] },
     [["Ponta da Ferraria", "nature", "Ferraria", "Hot spring in the ocean rocks."], ["Mosteiros sea stacks", "nature", "Mosteiros_(Ponta_Delgada)", "Black-sand beach and islets at sunset."]],
@@ -161,7 +161,7 @@
     setubal: ["setubal", 1, "after:lisbon", 1, 0, "Arrábida's green cliffs and a castle pousada."],
     tarifa: ["tarifa", 2, "after:seville", 2, 0, "Europe's southern tip: dunes, Roman ruins, a view of Africa."],
     frigiliana: ["frigiliana", 1, "after:granada", 1, 0, "White village above the sea and the Nerja caves."],
-    ubeda: ["ubeda", 1, "after:granada", 1, 0, "Renaissance towns in endless olive groves."],
+    ubeda: ["ubeda", 1, "after:granada", 1, 0, "Renaissance towns surrounded by olive groves."],
     tybee: ["tybee", 1, "after:savannah", 0, 0, "Beach night, lighthouse, The Crab Shack."],
     edisto: ["edisto", 1, "after:charleston", 1, 0, "Quiet sea island down a live-oak road."],
     catalina: ["catalina", 2, "end", 0, 90, "An island off LA: Avalon harbour, bison, coves. Includes the ferry."],
