@@ -171,12 +171,20 @@
   const gq = q => "https://www.google.com/travel/flights?q=" + encodeURIComponent(q);
   function highlightTiles(id) {
     const it = window.BUDGET.itineraries.find(i => i.id === id); if (!it) return "";
-    const tiles = [];
-    for (let r = 0; r < 3 && tiles.length < 8; r++) it.legs.forEach(([b]) => { const s = (window.SEE[b] || [])[r]; if (s && tiles.length < 8) tiles.push([s, b]); });
-    const K = { nature: "Nature", sight: "Sight", town: "Town" };
-    return `<div class="hls">${tiles.map(([s, b]) => `<a class="hlt" href="https://en.wikipedia.org/wiki/${encodeURIComponent(s[2])}" target="_blank" rel="noopener">
-      <div class="hlt-ph"><img data-wiki="${esc(s[2])}" alt="${esc(s[0])}" loading="lazy"><span>${K[s[1]]}</span></div>
+    const K = { nature: "Nature", sight: "Sight", town: "Town", culture: "Culture", history: "History" };
+    const pick = (test, max) => {
+      const out = [], seen = new Set();
+      for (let r = 0; r < 8 && out.length < max; r++) it.legs.forEach(([b]) => {
+        const s = (window.SEE[b] || []).filter(x => test(x[1]))[r];
+        if (s && out.length < max && !seen.has(s[2])) { seen.add(s[2]); out.push([s, b]); }
+      });
+      return out;
+    };
+    const tiles = list => `<div class="hls">${list.map(([s, b]) => `<a class="hlt" href="https://en.wikipedia.org/wiki/${encodeURIComponent(s[2])}" target="_blank" rel="noopener">
+      <div class="hlt-ph"><img data-wiki="${esc(s[2])}" alt="${esc(s[0])}" loading="lazy"><span>${K[s[1]] || ""}</span></div>
       <b>${esc(s[0])}</b><small>${esc(window.BUDGET.bases[b].name)}</small><p>${esc(s[3])}</p></a>`).join("")}</div>`;
+    const nat = pick(k => k === "nature", 8), cul = pick(k => k !== "nature", 8);
+    return `${nat.length ? `<h3 class="hl-g">Nature</h3>${tiles(nat)}` : ""}${cul.length ? `<h3 class="hl-g">Culture &amp; history</h3>${tiles(cul)}` : ""}`;
   }
   function hubTable(id) {
     const r = window.budgetHubRows(id);
@@ -308,6 +316,37 @@
       </div></div>`;
   }
 
+  /* ---------------- long sections fold away; these stay open ---------------- */
+  const OPEN = ["s-see", "s-route", "s-stay"];
+  function foldSections(root) {
+    root.querySelectorAll(".blk[id]").forEach(b => {
+      if (OPEN.includes(b.id)) return;
+      b.classList.add("fold");
+      const h = b.querySelector("h2"); if (!h) return;
+      h.setAttribute("role", "button"); h.setAttribute("tabindex", "0"); h.setAttribute("aria-expanded", "false");
+    });
+  }
+  const openBlk = (b, on) => { b.classList.toggle("open", on); const h = b.querySelector("h2"); if (h) h.setAttribute("aria-expanded", on ? "true" : "false"); if (on) hydrateImgs(b); };
+
+  /* ---------------- at a glance ---------------- */
+  function glance(d) {
+    const p = window.budgetPace ? window.budgetPace(d.id) : null, r = wxRows(d), pl = planOf(d.id), cost = window.budgetQuick(d.id);
+    const starred = d.eat.filter(e => e.stars).length;
+    const cell = (label, big, small) => `<div><small>${label}</small><b>${big}</b>${small ? `<em>${small}</em>` : ""}</div>`;
+    return { p, r, pl, cost, starred, html: `<div class="qv">
+      ${pl.best ? `<p class="qv-best"><b>Best for:</b> ${esc(pl.best)}</p>` : ""}
+      <div class="qv-g">
+        ${cell("Total for two", "$" + Math.round(cost).toLocaleString("en-US"), `${nights(d)} nights, all in`)}
+        ${p ? cell("Pace", `${p.moves} ${p.moves === 1 ? "move" : "moves"}`, `${p.still} days with no move · longest ${p.fmt(p.longest || 0)}`) : ""}
+        ${r ? cell("Weather", `${d.weather.hi}° / ${d.weather.lo}°C`, `${pct(r.rw.dry)} chance of a mostly dry trip`) : ""}
+        ${pl.d2d ? cell("Door to door", `${hrs(pl.d2d.BOS[0])}`, "from Boston to the first hotel") : ""}
+        ${cell("Food", `${starred} starred`, `${(window.FOOD && window.FOOD[d.id] || []).length} local dishes to try`)}
+        ${cell("Your ratings", `${vote(d.id, "a") || "–"} / ${vote(d.id, "b") || "–"}`, `${esc(S.names.a)} / ${esc(S.names.b)}`)}
+      </div>
+      ${pl.down ? `<p class="qv-catch"><b>The catch:</b> ${esc(pl.down)}</p>` : ""}
+    </div>` };
+  }
+
   function renderDetail(d) {
     renderChips(d.id);
     const starred = d.eat.filter(e => e.stars);
@@ -325,11 +364,11 @@
         </div>
       </header>
       <div class="strip">${d.photos.slice(1, 7).map(p => `<a href="${wikiUrl(p)}" target="_blank" rel="noopener"><img data-wiki="${esc(p)}" alt="${esc(pretty(p))}" loading="lazy"><span>${esc(pretty(p))}</span></a>`).join("")}<a class="strip-more" href="https://unsplash.com/s/photos/${d.unsplash}" target="_blank" rel="noopener">More photos ↗</a></div>
-      <p class="tagline lead">${esc(d.tagline)}</p>${planOf(d.id).down ? `<p class="catch"><b>The catch:</b> ${esc(planOf(d.id).down)}</p>` : ""}
+      <p class="tagline lead">${esc(d.tagline)}</p>${glance(d).html}
       <div class="d-head"><a class="btn dark" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>${rateWidget(d.id)}<button class="btn ${S.chosen === d.id ? "dark" : ""}" data-choose="${d.id}">${S.chosen === d.id ? "✓ Our trip · open plan" : "We're going here"}</button></div>
       <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-disc">Discover</a><a href="#s-route">Route</a><a href="#s-pace">Pace</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-food">Foods to try</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-read">For the flight</a><a href="#s-go">Before you go</a><a href="#s-b">Plan B</a><a href="#s-pc">Pros & cons</a></nav>
 
-      <div class="blk" id="s-see"><h2>Highlights: nature &amp; sights</h2>${highlightTiles(d.id)}</div>
+      <div class="blk" id="s-see"><h2>Highlights</h2>${highlightTiles(d.id)}</div>
 
       ${discoverBlock(d)}
 
@@ -384,6 +423,7 @@
       <div class="blk" id="s-pc" style="border:0"><h2>Pros & cons</h2>
         <div class="pc"><div class="p"><h4>For</h4><ul>${d.pros.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div><div class="c"><h4>Against</h4><ul>${d.cons.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div></div>
       </div>`;
+    foldSections($("#list"));
     hydrateImgs($("#list"));
     reveal($("#list"));
     filterDiscover();
@@ -431,10 +471,56 @@
     const votes = ((va || 0) + (vb || 0)) / 10 * 30;
     return Math.round(base + votes + (status(d.id) === "short" ? 5 : 0));
   }
+  function headToHead() {
+    const live = D.filter(d => status(d.id) !== "out");
+    const ranked = live.map(d => [d, score(d)]).sort((a, b) => b[1] - a[1]).map(x => x[0].id);
+    let [a, b] = S.h2h || ranked.slice(0, 2);
+    if (!byId[a]) a = ranked[0]; if (!byId[b] || b === a) b = ranked.find(x => x !== a);
+    const A = byId[a], Bd = byId[b], ga = glance(A), gb = glance(Bd);
+    const sel = (side, cur) => `<select data-h2h="${side}" aria-label="Option ${side === 0 ? "one" : "two"}">${D.map(d => `<option value="${d.id}" ${d.id === cur ? "selected" : ""}>${esc(d.name)}</option>`).join("")}</select>`;
+    const row = (label, va, vb, better, fa = x => x, fb = fa) => {
+      const w = better && va !== vb && va != null && vb != null ? (better(va, vb) ? "a" : "b") : "";
+      return `<tr><th>${label}</th><td class="${w === "a" ? "win" : ""}">${fa(va, ga, A)}</td><td class="${w === "b" ? "win" : ""}">${fb(vb, gb, Bd)}</td></tr>`;
+    };
+    const lo = (x, y) => x < y, hi = (x, y) => x > y;
+    const usd = n => "$" + Math.round(n).toLocaleString("en-US");
+    const top = (g, d, kind) => {
+      const it = window.BUDGET.itineraries.find(i => i.id === d.id); if (!it) return "";
+      const out = []; for (let r = 0; r < 6 && out.length < 3; r++) it.legs.forEach(([bb]) => { const s = (window.SEE[bb] || []).filter(x => kind === "nature" ? x[1] === "nature" : x[1] !== "nature")[r]; if (s && out.length < 3 && !out.includes(s[0])) out.push(s[0]); });
+      return out.map(esc).join(", ");
+    };
+    const foods = d => ((window.FOOD || {})[d.id] || []).slice(0, 3).map(x => esc(x[0])).join(", ");
+    return `<div class="section-h"><h2>Head to head</h2><p>Pick two. The better one on each line is marked.</p></div>
+      <div class="h2h">
+        <div class="h2h-top"><div>${sel(0, a)}<a href="#/d/${a}" class="h2h-ph"><img data-wiki="${esc(A.hero)}" alt=""><b>${esc(A.name)}</b></a></div><span class="h2h-vs">vs</span><div>${sel(1, b)}<a href="#/d/${b}" class="h2h-ph"><img data-wiki="${esc(Bd.hero)}" alt=""><b>${esc(Bd.name)}</b></a></div></div>
+        <table class="h2h-t">
+          ${row("Best for", 0, 0, null, (x, g) => esc(g.pl.best || ""))}
+          ${row("Total for two", ga.cost, gb.cost, lo, x => usd(x))}
+          ${row("Hotel changes", ga.p && ga.p.moves, gb.p && gb.p.moves, lo)}
+          ${row("Days with no move", ga.p && ga.p.still, gb.p && gb.p.still, hi)}
+          ${row("Hours on the move", ga.p && ga.p.travelH, gb.p && gb.p.travelH, lo, (x, g) => g.p ? g.p.fmt(x) : "–")}
+          ${row("Door to door from Boston", ga.pl.d2d && ga.pl.d2d.BOS[0], gb.pl.d2d && gb.pl.d2d.BOS[0], lo, x => x == null ? "–" : hrs(x))}
+          ${row("Daytime high", A.weather.hi, Bd.weather.hi, hi, x => x + "°C")}
+          ${row("Mostly dry trip", ga.r && ga.r.rw.dry, gb.r && gb.r.rw.dry, hi, x => x == null ? "–" : pct(x))}
+          ${row("Relaxing (my estimate)", A.scores.relax, Bd.scores.relax, hi, x => x + "/5")}
+          ${row("Food (my estimate)", A.scores.food, Bd.scores.food, hi, x => x + "/5")}
+          ${row("Michelin-starred", ga.starred, gb.starred, hi)}
+          ${row("Means something", meaning(a), meaning(b), hi, (x, g, d) => x + "/5" + (planOf(d.id).personal ? `<small>${esc(planOf(d.id).personal)}</small>` : ""))}
+          ${row(esc(S.names.a) + " rates it", vote(a, "a"), vote(b, "a"), hi, x => x ? x + "/5" : "–")}
+          ${row(esc(S.names.b) + " rates it", vote(a, "b"), vote(b, "b"), hi, x => x ? x + "/5" : "–")}
+          ${row("Nature", 0, 0, null, (x, g, d) => top(g, d, "nature"))}
+          ${row("Culture &amp; history", 0, 0, null, (x, g, d) => top(g, d, "culture"))}
+          ${row("Eat", 0, 0, null, (x, g, d) => foods(d))}
+          ${row("The catch", 0, 0, null, (x, g) => esc(g.pl.down || ""))}
+        </table>
+      </div>`;
+  }
+  const $$h2h = () => [...document.querySelectorAll("[data-h2h]")].map(x => x.value);
   function renderCompare() {
     const rows = D.map(d => ({ d, s: status(d.id) === "out" ? -1 : score(d) })).sort((a, b) => b.s - a.s);
     $("#view-compare").innerHTML = `<div class="wrap">
-      <div class="section-h"><h2>Side by side</h2><p>Rate each option out of 5, then set what matters. The ranking updates as you go.</p></div>
+      ${headToHead()}
+      <div class="section-h" style="margin-top:40px"><h2>Side by side</h2><p>Rate each option out of 5, then set what matters. The ranking updates as you go.</p></div>
       <div class="weights">${CRIT.map(([k, l]) => `<label>${l}<input type="range" min="0" max="3" step="1" value="${S.weights[k]}" data-w="${k}"><output>${S.weights[k]}</output></label>`).join("")}<label>Means something<input type="range" min="0" max="3" step="1" value="${S.weights.meaning ?? 2}" data-w="meaning"><output>${S.weights.meaning ?? 2}</output></label></div>
       <div class="cmp-scroll"><table class="cmp">
         <tr><th>#</th><th>Option</th>${CRIT.map(([, l]) => `<th>${l}</th>`).join("")}<th>Means something</th><th>Your ratings</th><th>Score</th></tr>
@@ -622,11 +708,14 @@
       e.preventDefault();
       document.querySelectorAll(".rv:not(.in)").forEach(x => x.classList.add("in")); // never jump to a still-hidden section
       const el = document.getElementById(jump.getAttribute("href").slice(1));
+      if (el && el.classList.contains("fold")) openBlk(el, true);
       if (el) { const top = (document.querySelector(".top").offsetHeight || 0) + (document.querySelector(".subnav") ? document.querySelector(".subnav").offsetHeight : 0) + 8; window.smoothTo(el, top); }
       return;
     }
     const sf = e.target.closest("[data-sea]");
     if (sf) { sf.parentElement.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === sf)); document.querySelectorAll("#s-stay .stay").forEach(x => x.style.display = sf.dataset.sea === "sea" && x.dataset.seaside !== "1" ? "none" : ""); return; }
+    const fh = e.target.closest(".blk.fold > h2");
+    if (fh) { openBlk(fh.parentElement, !fh.parentElement.classList.contains("open")); return; }
     const df = e.target.closest("[data-dcat],[data-deff]");
     if (df) { df.parentElement.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === df)); filterDiscover(); return; }
     const v = e.target.closest("[data-vote]");
@@ -645,8 +734,10 @@
     }
     if (e.target.id === "reset" && confirm("Clear all ratings, statuses and notes in this browser?")) { S = blank(); save(); renderNotes(); toast("Reset"); }
   });
+  document.addEventListener("keydown", e => { const fh = e.target.closest && e.target.closest(".blk.fold > h2"); if (fh && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); fh.click(); } });
   document.addEventListener("change", e => {
     if (e.target.dataset.w) { renderCompare(); return; }
+    if (e.target.dataset.h2h) { const cur = $$h2h(); cur[+e.target.dataset.h2h] = e.target.value; S.h2h = cur; save(); renderCompare(); return; }
     if (e.target.dataset.done) { S.done = S.done || {}; S.done[e.target.dataset.done] = e.target.checked; save(); return; }
     if (e.target.dataset.status) { S.status[e.target.dataset.status] = e.target.value; save(); if ($("#view-compare").classList.contains("on")) renderCompare(); }
   });

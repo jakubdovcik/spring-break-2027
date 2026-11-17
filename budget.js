@@ -266,7 +266,7 @@
     const tiles = [];
     for (let round = 0; round < 3 && tiles.length < 8; round++)
       L.forEach(l => { const s = seeFor(l.id)[round]; if (s && tiles.length < 8) tiles.push([s, l.id]); });
-    return `<div class="hl-h"><h4 class="bh" style="margin:0">Highlights along the way</h4>${seg("seeKind", [["all", "All"], ["nature", "Nature"], ["sight", "Sights & towns"]], st().seeKind)}</div>
+    return `<div class="hl-h"><h4 class="bh" style="margin:0">Highlights along the way</h4>${seg("seeKind", [["all", "All"], ["nature", "Nature"], ["sight", "Culture & history"]], st().seeKind)}</div>
       <div class="hls">${tiles.map(([s, id]) => `<a class="hlt" href="${wiki(s[2])}" target="_blank" rel="noopener">
         <div class="hlt-ph"><img data-wiki="${esc(s[2])}" alt="${esc(s[0])}" loading="lazy"><span>${KIND[s[1]]}</span></div>
         <b>${esc(s[0])}</b><small>${esc(B.bases[id].name)}</small><p>${esc(s[3])}</p></a>`).join("")}</div>`;

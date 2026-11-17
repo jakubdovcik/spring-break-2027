@@ -43,6 +43,7 @@ window.PLAN = {
 
   dest: {
     spain: {
+      best: "Food first: pintxo bars, cider houses and three-star dinners, with green coast and mountains between meals.",
       d2d: { BOS: [14, 14.5], BWI: [15.5, 16], how: "Out: Boston → Paris or Amsterdam → Bilbao, then a taxi into town. Back: drive to Asturias airport, fly via Madrid or Paris." },
       book: [
         ["Mid Dec – Jan", "Asador Etxebarri: bookings open about 2–3 months ahead and go fast. Ask for lunch."],
@@ -58,6 +59,7 @@ window.PLAN = {
       down: "Rain on about 4 days in 10, and the 3 h 30 drive from San Sebastián to Asturias is the longest single move of the European options.",
     },
     scotland: {
+      best: "Cosy and atmospheric: fires, whisky, castles and big empty landscapes, if you don't mind the cold.",
       d2d: { BOS: [12, 13.5], BWI: [14, 15], how: "Out: Boston → Dublin → Edinburgh. Back: from St Andrews to Edinburgh airport, then via Dublin, where you clear US immigration." },
       book: [
         ["Jan", "Restaurant Andrew Fairlie at Gleneagles (2 stars, one room): book as soon as your dates are firm."],
@@ -73,6 +75,7 @@ window.PLAN = {
       down: "It's the coldest option, about 9°C by day, with grey skies most days and about a 1-in-5 chance that snow disrupts a day in the Cairngorms.",
     },
     provence: {
+      best: "Slow village days, markets and long lunches, plus a place that means something to Elizabeth.",
       d2d: { BOS: [14.5, 14], BWI: [16, 15.5], how: "Out: Boston → Paris CDG, then the TGV from the airport to Aix (about 3 h 30). Back: Marseille → Paris → Boston." },
       book: [
         ["Jan", "Le Petit Nice and AM par Alexandre Mazzia in Marseille: 6–8 weeks ahead."],
@@ -89,6 +92,7 @@ window.PLAN = {
       personal: "Elizabeth studied in Aix.",
     },
     azores: {
+      best: "Doing very little: hot springs, crater lakes and one hotel for most of the week, a short flight from Boston.",
       d2d: { BOS: [7, 8.5], BWI: [10, 11.5], how: "Boston → Ponta Delgada direct, about 4 h 30. From Baltimore, connect in Boston or fly direct from another hub." },
       book: [
         ["Dec – Jan", "Direct Boston flights. There are few a week in March, so fares jump once they fill."],
@@ -104,6 +108,7 @@ window.PLAN = {
       down: "The weather changes several times a day and crater-lake views are often in cloud.",
     },
     lisbon: {
+      best: "A mix: three nights of city, then beaches and wine estates. Warmest of the European options for the money.",
       d2d: { BOS: [9, 11.5], BWI: [11, 13], how: "TAP direct from Boston or Washington Dulles to Lisbon, about 6 h 30. Back from the Alentejo it's 1 h 30 to Lisbon airport." },
       book: [
         ["Jan", "Belcanto (2 stars): about 6 weeks ahead."],
@@ -119,6 +124,7 @@ window.PLAN = {
       down: "Lisbon is hilly and busy, and the beach part is quiet because it's out of season.",
     },
     andalusia: {
+      best: "Sun and history: palaces, orange blossom and tapas evenings, with the warmest weather in Europe.",
       d2d: { BOS: [14, 15], BWI: [15, 16], how: "Out: Boston → Madrid, then the AVE train to Seville (2 h 30). Back: drive to Málaga airport and fly via Madrid." },
       book: [
         ["Dec – Jan", "Alhambra tickets for Granada: they sell out weeks ahead, and the Nasrid Palaces need a timed slot."],
@@ -134,6 +140,7 @@ window.PLAN = {
       down: "Holy Week crowds start on your last weekend, and Granada nights can be close to freezing.",
     },
     lowcountry: {
+      best: "An easy, short-flight week of porches, oysters and old squares, with no jet lag.",
       d2d: { BOS: [5, 5.5], BWI: [4.5, 5], how: "Direct Boston → Charleston, about 2 h 30. Back: direct Savannah → Boston, or connect through Atlanta." },
       book: [
         ["Now", "Savannah hotel: St Patrick's Day week sells out early and prices double."],
@@ -150,6 +157,7 @@ window.PLAN = {
       down: "Savannah is in the middle of St Patrick's Day week, and the sea is too cold for swimming.",
     },
     socal: {
+      best: "Variety: desert pools, national parks, the coast and Elizabeth's friends in LA.",
       d2d: { BOS: [10.5, 8], BWI: [11, 8.5], how: "Out: Boston → Los Angeles direct, then about 2 h 30 to Palm Springs (or fly into Palm Springs with one stop). Back: direct from LA." },
       book: [
         ["Dec – Jan", "Palm Springs hotels: spring break is high season there."],
