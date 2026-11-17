@@ -26,7 +26,9 @@
     return b;
   }
   const save = () => window.APP.save();
-  const hotelIdx = id => { const b = st(), h = B.bases[id].hotels; return b.hotel[id] ?? B.bases[id].def ?? (h.length >= 3 ? 1 : 0); };
+  /* default room: the option closest to ~$260 a night, scaled by local prices, so every trip starts at the same comfort level */
+  const midIdx = id => { const base = B.bases[id], t = 260 * base.f; let best = 0; base.hotels.forEach((h, i) => { const d = Math.abs(h[1] - t), bd = Math.abs(base.hotels[best][1] - t); if (d < bd || (d === bd && h[1] < base.hotels[best][1])) best = i; }); return best; };
+  const hotelIdx = id => st().hotel[id] ?? midIdx(id);
   const hotelPrice = id => st().hotelPrice[id] || B.bases[id].hotels[hotelIdx(id)][1];
   /* add-on stops */
   const tgt = it => it.nightsTarget || B.nightsTarget;
