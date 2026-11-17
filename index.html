@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spring '27</title>
+<meta name="description" content="Choosing a spring break: northern Spain, Scotland, Provence and a few wildcards. 12–21 March 2027.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#" data-go="explore">spring<span>/</span>27</a>
+  <nav class="seg" id="nav">
+    <button data-view="explore" class="on">Explore</button>
+    <button data-view="compare">Compare</button>
+    <button data-view="flights">Flights</button>
+    <button data-view="notes">Notes</button>
+  </nav>
+  <div class="count" id="countdown"></div>
+</header>
+
+<div class="search">
+  <div class="search-bar">
+    <div class="sf"><label>Where</label><span id="sf-where">6 options</span></div>
+    <div class="sf"><label>When</label><span>Fri 12 – Sun 21 Mar</span></div>
+    <div class="sf"><label>From</label><span>BOS · BWI</span></div>
+    <div class="sf"><label>Who</label><span>2 guests · slow pace</span></div>
+    <div class="sf-go" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div>
+  </div>
+</div>
+
+<div class="chips" id="chips"></div>
+
+<main id="app">
+  <section class="view on" id="view-explore">
+    <div class="split">
+      <div class="list" id="list"></div>
+      <div class="mapwrap"><div id="map"></div></div>
+    </div>
+  </section>
+  <section class="view" id="view-compare"></section>
+  <section class="view" id="view-flights"></section>
+  <section class="view" id="view-notes"></section>
+</main>
+
+<footer class="foot">
+  Photos: Wikipedia / Wikimedia Commons (click any photo for its source). Map © Esri, © OpenStreetMap contributors.
+  Michelin stars as of the 2025–26 guides, flights are typical schedules, so verify both before booking.
+  Ratings save in this browser. Use <em>Notes → Copy share link</em> to send your picks to each other.
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
