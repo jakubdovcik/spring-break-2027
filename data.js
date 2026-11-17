@@ -29,7 +29,7 @@ window.TRIP = {
       hero: "San_Sebastián",
       unsplash: "san-sebastian",
       weather: { hi: 16, lo: 8, rainDays: 12, daylight: "11h 50m", sea: 13, summary: "Mild and green. Expect some showers and bring a light rain jacket." },
-      scores: { relax: 3, food: 5, cozy: 4, weather: 3, ease: 3 },
+      scores: { relax: 4, food: 5, cozy: 4, weather: 3, ease: 3 },
       budget: "€€€",
       pros: ["Probably the best food region in Europe per square km", "Calm, uncrowded shoulder season", "Ocean, mountains and cities all close together"],
       cons: ["Rainiest of the three", "The road trip needs a car (or Alsa buses)", "No direct US flight, so 1 connection each way"],
