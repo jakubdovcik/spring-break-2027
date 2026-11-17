@@ -23,7 +23,7 @@
     return S.budget;
   }
   const save = () => window.APP.save();
-  const hotelIdx = id => { const b = st(), h = B.bases[id].hotels; return b.hotel[id] ?? (h.length >= 3 ? 1 : 0); };
+  const hotelIdx = id => { const b = st(), h = B.bases[id].hotels; return b.hotel[id] ?? B.bases[id].def ?? (h.length >= 3 ? 1 : 0); };
   const hotelPrice = id => st().hotelPrice[id] || B.bases[id].hotels[hotelIdx(id)][1];
   /* add-on stops */
   const tgt = it => it.nightsTarget || B.nightsTarget;
