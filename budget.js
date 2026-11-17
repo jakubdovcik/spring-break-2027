@@ -213,7 +213,7 @@
     v.innerHTML = `<div class="wrap">
       <div class="section-h"><h2>Budget builder</h2><p>Rough ballpark for two, in USD. Pick a route, then tune anything.</p></div>
       <div id="b-its"></div>
-      <div class="bgrid"><div id="b-build"></div><aside class="bsum"><div id="b-sum"></div><div id="bmap"></div></aside></div>
+      <div class="bgrid"><div id="b-build"></div><aside class="bsum"><div id="b-sum"></div><div id="bmap"></div><p class="maplg"><span><i class="lg-road"></i>road</span><span><i class="lg-train"></i>train</span><span><i class="lg-ferry"></i>ferry</span><span><i class="lg-fly"></i>flight</span></p></aside></div>
       <div class="mtot" id="mtot"></div>
     </div>`;
     bmap = L.map("bmap", { zoomControl: false, scrollWheelZoom: false, dragging: !L.Browser.mobile, attributionControl: false });
@@ -231,7 +231,7 @@
     const Lg = legs(IT[st().it]);
     blayer.clearLayers();
     const ll = Lg.map(l => [B.bases[l.id].lat, B.bases[l.id].lng]);
-    L.polyline(ll, { color: "#141414", weight: 2, opacity: .7, dashArray: "4 6" }).addTo(blayer);
+    segments(IT[st().it], Lg).forEach((sg, i) => window.routeLine(blayer, ll[i], ll[i + 1], sg.o[0], { color: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#141414", weight: 3, opacity: .85 }));
     Lg.forEach((l, i) => L.marker(ll[i], { icon: L.divIcon({ className: "", html: `<div class="pin" style="background:#141414">${i + 1}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }) }).bindTooltip(`${B.bases[l.id].name} · ${l.n}n`).addTo(blayer));
     bmap.fitBounds(ll, { padding: [30, 30], maxZoom: 8 });
   }
