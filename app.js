@@ -339,8 +339,9 @@
       ${addonCards(d.id)}
 
       <div class="blk" id="s-stay"><h2>Where to stay</h2>
-        <div class="stays">${d.stays.map(s => `<a class="stay ${s.highlight ? "hl" : ""}" href="${s.url}" target="_blank" rel="noopener">
-          ${s.highlight ? `<span class="fav">Standout</span>` : ""}
+        ${d.stays.some(s => s.sea) ? `<div class="bseg sea-f"><button class="on" data-sea="all">All</button><button data-sea="sea">By the sea</button></div>` : ""}
+        <div class="stays">${d.stays.map(s => `<a class="stay ${s.highlight ? "hl" : ""}" data-seaside="${s.sea ? 1 : 0}" href="${s.url}" target="_blank" rel="noopener">
+          ${s.highlight ? `<span class="fav">Standout</span>` : ""}${s.sea ? `<span class="seab">By the sea</span>` : ""}
           <span class="tg">${esc(s.tag)}</span><h3>${esc(s.name)}</h3><span class="pl">${esc(s.place)}</span><p>${esc(s.why)}</p>
           <div class="pr">${s.price}<span>Look up ↗</span></div></a>`).join("")}</div>
       </div>
@@ -617,6 +618,8 @@
       if (el) { const top = (document.querySelector(".top").offsetHeight || 0) + (document.querySelector(".subnav") ? document.querySelector(".subnav").offsetHeight : 0) + 8; window.smoothTo(el, top); }
       return;
     }
+    const sf = e.target.closest("[data-sea]");
+    if (sf) { sf.parentElement.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === sf)); document.querySelectorAll("#s-stay .stay").forEach(x => x.style.display = sf.dataset.sea === "sea" && x.dataset.seaside !== "1" ? "none" : ""); return; }
     const df = e.target.closest("[data-dcat],[data-deff]");
     if (df) { df.parentElement.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === df)); filterDiscover(); return; }
     const v = e.target.closest("[data-vote]");

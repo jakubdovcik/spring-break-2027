@@ -183,7 +183,7 @@ window.PLAN.media = {
   },
   scotland: {
     book: ["Kidnapped", "Robert Louis Stevenson", 1886, "", "An Edinburgh writer's chase across the Highlands after the Jacobite rising. Short, and it ends in Edinburgh."],
-    film: ["Local Hero", "Bill Forsyth", 1983, "111 min", "A Texas oil man is sent to buy a Scottish fishing village and slowly stops wanting to. Gentle and funny."]
+    film: ["Skyfall", "Sam Mendes", 2012, "143 min", "Bond drives the old Aston Martin DB5 up the Glen Etive road in Glen Coe to his childhood home. The house was a set, but the glen is real, and it's on the Glen Coe add-on."]
   },
   provence: {
     book: ["A Year in Provence", "Peter Mayle", 1989, "", "An English couple's first year in a Luberon farmhouse, month by month, starting with the mistral. Set where you'd be staying."],

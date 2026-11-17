@@ -645,3 +645,6 @@ a.back{color:var(--accent)}
 .med .pl{color:var(--mute);font-size:13px}
 .med p{color:var(--ink2);font-size:14px;margin:8px 0 0}
 @media (max-width:760px){.meds{grid-template-columns:minmax(0,1fr)}}
+.seab{position:absolute;top:14px;right:14px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;color:var(--accent,#141414)}
+.stay.hl .seab{top:34px}
+.sea-f{margin:-4px 0 14px;display:inline-flex}
