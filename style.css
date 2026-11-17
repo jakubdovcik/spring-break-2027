@@ -654,3 +654,10 @@ a.back{color:var(--accent)}
 .maplg .lg-train{border-top-style:dashed}
 .maplg .lg-ferry{border-top-style:dotted}
 .maplg .lg-fly{border-top:2px dotted var(--mute)}
+.foods{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;counter-reset:f}
+.foods li{display:grid;grid-template-columns:26px 1fr;column-gap:8px;padding:12px 0;border-top:1px solid var(--line);counter-increment:f}
+.foods li:before{content:counter(f,decimal-leading-zero);grid-row:span 2;font-size:12px;color:var(--accent,var(--mute));font-weight:600;padding-top:3px}
+.foods h4{margin:0;font-size:16px;font-family:var(--display,inherit);font-weight:400}
+.foods .pl{color:var(--mute);font-size:12px}
+.foods p{margin:4px 0 0;color:var(--ink2);font-size:14px}
+@media (max-width:760px){.foods{grid-template-columns:minmax(0,1fr)}}
