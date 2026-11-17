@@ -22,7 +22,7 @@
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   const vote = (id, who) => (S.votes[id] || {})[who] || 0;
   const setVote = (id, who, v) => { S.votes[id] = S.votes[id] || {}; S.votes[id][who] = S.votes[id][who] === v ? 0 : v; save(); };
-  window.APP = { get S() { return S; }, save, esc, toast: m => toast(m) };
+  window.APP = { get S() { return S; }, save, esc, toast: m => toast(m), hydrate: el => hydrateImgs(el) };
   const status = id => S.status[id] || (byId[id].wildcard ? "maybe" : "in");
 
   function toast(msg) { const t = $("#toast") || Object.assign(document.body.appendChild(document.createElement("div")), { id: "toast", className: "toast" }); t.textContent = msg; t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 1800); }

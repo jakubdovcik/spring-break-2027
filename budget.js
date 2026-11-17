@@ -14,7 +14,7 @@
     nights: {}, hotel: {}, hotelPrice: {}, dine: {}, nice: 3,
     start: { c: "", n: 1 }, end: { c: "", n: 1 },
     carOn: {}, carDays: {}, carCls: "compact", taxi: "taxi",
-    dailyAmt: 150, spaN: 2, tours: 2, shopping: 300, fx: 0, ins: true, buffer: 10
+    seeKind: "all", dailyAmt: 150, spaN: 2, tours: 2, shopping: 300, fx: 0, ins: true, buffer: 10
   });
 
   function st() {
@@ -122,6 +122,20 @@
       <h4 class="bh">Mix &amp; match</h4><div class="its">${B.itineraries.filter(i => i.kind === "combo").map(card).join("")}</div>`;
   }
 
+  /* ---------------- nature & sights ---------------- */
+  const KIND = { nature: "Nature", sight: "Sight", town: "Town" };
+  const seeFor = id => (window.SEE[id] || []).filter(s => { const k = st().seeKind; return k === "all" || (k === "nature" ? s[1] === "nature" : s[1] !== "nature"); });
+  const wiki = t => "https://en.wikipedia.org/wiki/" + encodeURIComponent(t);
+  function highlights(L) {
+    const tiles = [];
+    for (let round = 0; round < 3 && tiles.length < 8; round++)
+      L.forEach(l => { const s = seeFor(l.id)[round]; if (s && tiles.length < 8) tiles.push([s, l.id]); });
+    return `<div class="hl-h"><h4 class="bh" style="margin:0">Highlights along the way</h4>${seg("seeKind", [["all", "All"], ["nature", "Nature"], ["sight", "Sights & towns"]], st().seeKind)}</div>
+      <div class="hls">${tiles.map(([s, id]) => `<a class="hlt" href="${wiki(s[2])}" target="_blank" rel="noopener">
+        <div class="hlt-ph"><img data-wiki="${esc(s[2])}" alt="${esc(s[0])}" loading="lazy"><span>${KIND[s[1]]}</span></div>
+        <b>${esc(s[0])}</b><small>${esc(B.bases[id].name)}</small><p>${esc(s[3])}</p></a>`).join("")}</div>`;
+  }
+
   function renderBuild() {
     const b = st(), it = IT[b.it], c = compute(it);
     const legRow = (l, idx) => {
@@ -134,12 +148,14 @@
         <div class="hrow"><select class="hsel" data-hotel="${l.id}">${base.hotels.map((h, i) => `<option value="${i}" ${i === hi ? "selected" : ""}>${esc(h[0])} · ${usd(h[1])}/night · ${esc(h[2])}</option>`).join("")}</select>
           <label class="hcust">or $<input type="number" min="0" step="10" inputmode="numeric" placeholder="${base.hotels[hi][1]}" value="${custom || ""}" data-hprice="${l.id}" aria-label="Custom nightly price">/night</label></div>
         <div class="leg-sub" data-legsub="${l.id}">${usd(l.n * hotelPrice(l.id))} for ${l.n} night${l.n > 1 ? "s" : ""}${custom ? " · your own price" : ""}</div>
-        ${base.dine.length ? `<div class="dines">${base.dine.map((d, i) => `<button class="dn ${b.dine[l.id + "|" + i] ? "on" : ""}" data-dine="${l.id}|${i}">${d[2] ? `<i>${"✿".repeat(d[2])}</i>` : ""}${esc(d[0])} <em>${usd(d[1])}</em></button>`).join("")}</div>` : ""}
+        ${seeFor(l.id).length ? `<div class="svs"><span class="svs-l">See</span>${seeFor(l.id).map(s => `<a class="sv ${s[1]}" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s[0] + " " + base.name.split(" ·")[0])}" target="_blank" rel="noopener" title="${esc(s[3])}">${esc(s[0])}</a>`).join("")}</div>` : ""}
+        ${base.dine.length ? `<div class="dines"><span class="svs-l">Eat</span>${base.dine.map((d, i) => `<button class="dn ${b.dine[l.id + "|" + i] ? "on" : ""}" data-dine="${l.id}|${i}">${d[2] ? `<i>${"✿".repeat(d[2])}</i>` : ""}${esc(d[0])} <em>${usd(d[1])}</em></button>`).join("")}</div>` : ""}
       </div>`;
     };
     const cityOpts = cur => `<option value="">None</option>` + B.bookendCities.map(cid => `<option value="${cid}" ${cur === cid ? "selected" : ""}>${B.bases[cid].name}${it.hubs.includes(cid) ? " (on your way)" : " (+ extra hop)"}</option>`).join("");
     $("#b-build").innerHTML = `
       <div class="bblk"><h3>${esc(it.name)}</h3><p class="bnote">${esc(it.how)}${it.why ? " " + esc(it.why) : ""}</p>
+        ${highlights(c.L)}
         ${c.L.map(legRow).join("")}
         ${it.transfers.length ? `<div class="trans">${it.transfers.map(t => `<span>${esc(t[0])} <em>${usd(t[1])} pp</em></span>`).join("")}</div>` : ""}
       </div>
@@ -200,9 +216,9 @@
   function render(id) {
     shell();
     if (id && IT[id]) { st().it = id; save(); }
-    renderIts(); renderBuild(); renderSum(); drawMap();
+    renderIts(); renderBuild(); renderSum(); drawMap(); window.APP.hydrate($("#b-build"));
   }
-  const full = () => { save(); renderIts(); renderBuild(); renderSum(); drawMap(); };
+  const full = () => { save(); renderIts(); renderBuild(); renderSum(); drawMap(); window.APP.hydrate($("#b-build")); };
   const light = () => { save(); renderIts(); renderSum(); };
 
   /* ---------------- events ---------------- */
