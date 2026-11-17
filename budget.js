@@ -416,7 +416,7 @@
   const LIM = { bags: [0, 6], nice: [0, 8], spaN: [0, 6], tours: [0, 8], carDays: [1, 9] };
   document.addEventListener("click", e => {
     if (!e.target.closest("#view-budget")) return;
-    if (e.target.closest("[data-jump]")) { $("#b-sum").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    if (e.target.closest("[data-jump]")) { const top = (document.querySelector(".top").offsetHeight || 0) + 8; window.smoothTo($("#b-sum"), top); return; }
     const b = st(), it = IT[b.it];
     const x = e.target.closest("[data-it],[data-n],[data-x],[data-xn],[data-sg],[data-dine],[data-set],[data-inc],[data-reset]");
     if (!x) return;

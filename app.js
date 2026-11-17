@@ -417,6 +417,13 @@
 
   /* ---------------- router ---------------- */
   function go(h) { if (location.hash === h) route(); else location.hash = h; }
+  /* smooth scroll, with an instant fallback where smooth scrolling is ignored */
+  window.smoothTo = (el, offset) => {
+    const target = () => Math.max(0, el.getBoundingClientRect().top + scrollY - offset);
+    window.scrollTo({ top: target(), behavior: "smooth" });
+    [700, 1400].forEach(ms => setTimeout(() => { const t = target(); if (Math.abs(scrollY - t) > 4) window.scrollTo(0, t); }, ms)); // finish if smooth scroll stalls or photos above shift the layout
+  };
+
   /* ---------------- per-option theme ---------------- */
   function applyTheme(id) {
     const T = window.THEMES || {}, key = (window.THEME_FOR || {})[id] || id, t = T[key], r = document.documentElement;
@@ -431,6 +438,7 @@
 
   function route() {
     const h = location.hash.replace(/^#/, "") || "/";
+    if (!h.startsWith("/")) { const el = document.getElementById(h); if (el) el.scrollIntoView(); return; } // a stray section anchor: stay put
     const [, a, b] = h.split("/");
     let view = "explore";
     if (["compare", "flights", "notes", "budget"].includes(a)) view = a;
@@ -453,6 +461,14 @@
 
   /* ---------------- events ---------------- */
   document.addEventListener("click", e => {
+    // in-page section links (#s-route etc.) scroll; they must not change the route
+    const jump = e.target.closest("a[href^=\"#s-\"]");
+    if (jump) {
+      e.preventDefault();
+      const el = document.getElementById(jump.getAttribute("href").slice(1));
+      if (el) { const top = (document.querySelector(".top").offsetHeight || 0) + (document.querySelector(".subnav") ? document.querySelector(".subnav").offsetHeight : 0) + 8; window.smoothTo(el, top); }
+      return;
+    }
     const v = e.target.closest("[data-vote]");
     if (v) { e.stopPropagation(); const [id, who, n] = v.dataset.vote.split("|"); setVote(id, who, +n); const wrap = v.closest(".rate"); wrap.outerHTML = rateWidget(id); if ($("#view-compare").classList.contains("on")) renderCompare(); return; }
     const nav = e.target.closest("#nav button"); if (nav) { go(nav.dataset.view === "explore" ? "#/" : "#/" + nav.dataset.view); return; }
