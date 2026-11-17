@@ -38,7 +38,7 @@
     return (imgCache[title] = fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title))
       .then(r => r.ok ? r.json() : null)
       .then(j => {
-        let u = j && (j.thumbnail ? j.thumbnail.source.replace(/\/\d+px-/, "/960px-") : j.originalimage && j.originalimage.source) || "";
+        let u = j && (j.thumbnail ? j.thumbnail.source.replace(/\d+px-(?=[^/]*$)/, "960px-") : j.originalimage && j.originalimage.source) || "";
         try { sessionStorage.setItem("wi:" + title, u); } catch (e) {}
         return u || null;
       }).catch(() => null));
@@ -48,7 +48,7 @@
       wikiImg(img.dataset.wiki).then(u => {
         if (!u) { img.style.visibility = "hidden"; return; }
         img.onerror = () => { img.onerror = null; fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(img.dataset.wiki)).then(r => r.json()).then(j => { if (j.originalimage) img.src = j.originalimage.source; }); };
-        img.src = u;
+        img.src = img.dataset.big ? u.replace(/\d+px-(?=[^/]*$)/, "1920px-") : u;
       });
     });
   }
@@ -314,7 +314,7 @@
     const ph = d.photos.slice(0, 5);
     $("#list").innerHTML = `
       <header class="hero">
-        <img data-wiki="${esc(d.hero)}" alt="${esc(d.name)}">
+        <img data-wiki="${esc(d.hero)}" data-big="1" alt="${esc(d.name)}">
         <div class="hero-o"></div>
         <a class="hero-back" href="#/">← All options</a>
         <div class="hero-t">
