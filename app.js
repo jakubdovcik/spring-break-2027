@@ -125,6 +125,15 @@
       </select></div>`;
   }
 
+  /* ---------------- gentle reveal as sections scroll in ---------------- */
+  function reveal(root) {
+    if (!("IntersectionObserver" in window) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const els = root.querySelectorAll(".blk, .card, .combo");
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -6% 0px" });
+    els.forEach((el, i) => { el.classList.add("rv"); if (!el.classList.contains("blk")) el.style.transitionDelay = (i % 4) * 70 + "ms"; io.observe(el); });
+    setTimeout(() => els.forEach(el => el.classList.add("in")), 3000); // never leave anything hidden
+  }
+
   /* ---------------- explore: list ---------------- */
   function renderList() {
     renderChips(null);
@@ -135,13 +144,14 @@
           <span class="badge">${d.wildcard ? "Wildcard" : (d.proposedBy === "Him" ? S.names.a : S.names.b) + "'s idea"}</span>
           <div class="heart-row">${va ? `<span class="hb on">${esc(S.names.a[0])} ${va}/5</span>` : ""}${vb ? `<span class="hb on">${esc(S.names.b[0])} ${vb}/5</span>` : ""}${status(d.id) === "short" ? `<span class="hb">★</span>` : ""}</div>
         </div>
-        <div class="meta"><div><h3>${esc(d.name)}</h3><div class="sub">${esc(d.region)}</div><div class="line">${nights(d)} nights · ${d.stays.length} stays · ${d.eat.filter(e => e.stars).length} starred tables</div></div>
+        <div class="meta"><div><h3>${esc(d.name)}</h3><div class="sub">${esc(d.region)}</div>${(window.THEMES || {})[d.id] ? `<div class="cvibe" style="color:${window.THEMES[d.id].accent}">${esc(window.THEMES[d.id].vibe.split(" · ").slice(0, 2).join(" · "))}</div>` : ""}<div class="line">${nights(d)} nights · ${d.stays.length} stays · ${d.eat.filter(e => e.stars).length} starred tables</div></div>
         <div class="temp">${d.weather.hi}° / ${d.weather.lo}°</div></div>
       </article>`;
     };
     const main = D.filter(d => !d.wildcard && status(d.id) !== "out"), wild = D.filter(d => d.wildcard && status(d.id) !== "out");
     const out = D.filter(d => status(d.id) === "out");
     $("#list").innerHTML = `
+      <div class="cover"><small>${T.window.label} · ${esc(S.names.a)} &amp; ${esc(S.names.b)}</small><h1>Where to, in March?</h1><p>${D.length} ways to spend a slow spring week. Open one to step inside it.</p></div>
       <div class="section-h"><h2>Three ideas on the table</h2><p>${T.window.label} · 8 nights</p></div>
       <div class="grid">${main.map(card).join("")}</div>
       <div class="section-h" style="margin-top:40px"><h2>Ones we hadn't considered</h2><p>Mid-March, Boston-friendly</p></div>
@@ -150,6 +160,7 @@
       <div class="combos">${window.BUDGET.itineraries.filter(i => i.kind === "combo").map(i => `<a class="combo" href="#/budget/${i.id}"><b>${esc(i.name)}</b><small>${i.legs.map(l => window.BUDGET.bases[l[0]].name.split(" ·")[0] + " " + l[1] + "n").join(" → ")}</small>${window.nightsGlyph(i.legs.map(l => l[1]))}<p>${esc(i.why || "")}</p><span class="combo-p">≈ $${Math.round(window.budgetQuick(i.id) / 100) / 10}k for two →</span></a>`).join("")}</div>
       ${out.length ? `<div class="section-h" style="margin-top:40px"><h2>Ruled out</h2><p>${out.map(d => `<a href="#/d/${d.id}">${esc(d.name)}</a>`).join(" · ")}</p></div>` : ""}`;
     hydrateImgs($("#list"));
+    reveal($("#list"));
     drawAll();
   }
 
@@ -202,13 +213,20 @@
     const starred = d.eat.filter(e => e.stars);
     const ph = d.photos.slice(0, 5);
     $("#list").innerHTML = `
-      <a class="back" href="#/">← All options</a>
-      <div class="gallery">${ph.map(p => `<a href="${wikiUrl(p)}" target="_blank" rel="noopener"><img data-wiki="${esc(p)}" alt="${esc(pretty(p))}" loading="lazy"><span>${esc(pretty(p))}</span></a>`).join("")}</div>
-      <a class="more-photos" href="https://unsplash.com/s/photos/${d.unsplash}" target="_blank" rel="noopener">More photos ↗</a>
-      <div class="d-head"><div><h1>${esc(d.name)}</h1><div class="sub">${esc(d.region)}</div>${vibeFor(d.id) ? `<div class="vibe">${esc(vibeFor(d.id))}</div>` : ""}</div>${rateWidget(d.id)}</div>
-      <div class="facts"><span><b>${nights(d)}</b> nights</span><span><b>${d.stops.filter(s => s.nights).length}</b> bases</span><span><b>${d.weather.hi}° / ${d.weather.lo}°C</b></span><span><b>~${d.weather.rainDays}</b> rainy days/mo</span><span><b>${starred.length}</b> Michelin-starred</span><span><b>${d.budget}</b></span></div>
-      <p class="tagline">${esc(d.tagline)}</p>
-      <a class="btn dark" style="margin:-4px 0 18px" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>
+      <header class="hero">
+        <img data-wiki="${esc(d.hero)}" alt="${esc(d.name)}">
+        <div class="hero-o"></div>
+        <a class="hero-back" href="#/">← All options</a>
+        <div class="hero-t">
+          <small>${esc(d.region)}</small>
+          <h1>${esc(d.name)}</h1>
+          ${vibeFor(d.id) ? `<p class="hero-v">${esc(vibeFor(d.id))}</p>` : ""}
+          <div class="hero-f"><span>${nights(d)} nights</span><span>${d.weather.hi}° / ${d.weather.lo}°C</span><span>~${d.weather.rainDays} rainy days/mo</span><span>${starred.length} Michelin-starred</span><span>${d.budget}</span></div>
+        </div>
+      </header>
+      <div class="strip">${d.photos.slice(1, 7).map(p => `<a href="${wikiUrl(p)}" target="_blank" rel="noopener"><img data-wiki="${esc(p)}" alt="${esc(pretty(p))}" loading="lazy"><span>${esc(pretty(p))}</span></a>`).join("")}<a class="strip-more" href="https://unsplash.com/s/photos/${d.unsplash}" target="_blank" rel="noopener">More photos ↗</a></div>
+      <p class="tagline lead">${esc(d.tagline)}</p>
+      <div class="d-head"><a class="btn dark" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>${rateWidget(d.id)}</div>
       <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-route">Route</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-pc">Pros & cons</a></nav>
 
       <div class="blk" id="s-see"><h2>Highlights: nature &amp; sights</h2>${highlightTiles(d.id)}</div>
@@ -257,6 +275,7 @@
         <div class="pc"><div class="p"><h4>For</h4><ul>${d.pros.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div><div class="c"><h4>Against</h4><ul>${d.cons.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div></div>
       </div>`;
     hydrateImgs($("#list"));
+    reveal($("#list"));
     drawOne(d);
     window.scrollTo({ top: 0 });
   }

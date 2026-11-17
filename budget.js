@@ -300,6 +300,8 @@
         <p>${esc(s.o[3])}</p></div>`).join("")}</div>`;
   }
 
+  const heroFor = it => { const d = (window.TRIP.destinations || []).find(x => x.id === it.id); return d ? d.hero : ((window.SEE[it.legs[0][0]] || [])[0] || [])[2] || ""; };
+
   function renderBuild() {
     const b = st(), it = IT[b.it], c = compute(it);
     const legRow = (l, idx) => {
@@ -319,7 +321,7 @@
     };
     const cityOpts = cur => `<option value="">None</option>` + B.bookendCities.map(cid => `<option value="${cid}" ${cur === cid ? "selected" : ""}>${B.bases[cid].name}${it.hubs.includes(cid) ? " (on your way)" : " (+ extra hop)"}</option>`).join("");
     $("#b-build").innerHTML = `
-      <div class="bblk"><h3 class="rt">${esc(it.name)}</h3>${window.vibeFor && window.vibeFor(it.id) ? `<div class="vibe">${esc(window.vibeFor(it.id))}</div>` : ""}<p class="bnote">${esc(it.how)}${it.why ? " " + esc(it.why) : ""}</p>
+      <div class="bblk"><div class="rbanner"><img data-wiki="${esc(heroFor(it))}" alt=""><div class="hero-o"></div><div class="rb-t"><small>${it.kind === "combo" ? "Mix &amp; match" : "Budget for"}</small><h3 class="rt">${esc(it.name)}</h3>${window.vibeFor && window.vibeFor(it.id) ? `<p>${esc(window.vibeFor(it.id))}</p>` : ""}</div></div><p class="bnote">${esc(it.how)}${it.why ? " " + esc(it.why) : ""}</p>
         ${addons(it)}
         ${highlights(c.L)}
         ${c.L.map(legRow).join("")}
