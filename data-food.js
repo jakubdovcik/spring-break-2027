@@ -98,3 +98,99 @@ window.FOOD = {
     ["Ojai Pixie tangerines", "Ojai", "Small, seedless, very sweet tangerines grown in the Ojai valley, in season from March."]
   ]
 };
+
+/* regions that only appear in the mix-and-match routes */
+Object.assign(window.FOOD, {
+  loire: [
+    ["Rillettes", "Tours, Loire bistros", "Pork slow-cooked in its own fat and shredded, spread on bread. Tours is famous for it."],
+    ["Tarte Tatin", "Loire Valley", "Upside-down caramelised apple tart, first made at a hotel in Lamotte-Beuvron."],
+    ["Beurre blanc", "Loire river restaurants", "Butter sauce with shallots and white wine, served with river fish such as pike-perch."],
+    ["Sainte-Maure goat's cheese", "Markets, cheese boards", "Log-shaped goat's cheese with a straw through the middle, rolled in ash."],
+    ["Vouvray and Chinon", "Wine caves along the river", "Chenin Blanc whites from Vouvray and light Cabernet Franc reds from Chinon, tasted in cellars cut into the cliffs."]
+  ],
+  bordeaux: [
+    ["Canelé", "Bordeaux bakeries", "Small fluted cakes with a dark caramel crust and a soft rum-and-vanilla centre."],
+    ["Arcachon oysters", "Cap Ferret, Arcachon, Bordeaux markets", "Oysters from the bay an hour west of the city, eaten with a glass of white and a small sausage."],
+    ["Entrecôte bordelaise", "Bordeaux brasseries", "Rib steak with a red wine, shallot and bone-marrow sauce."],
+    ["Saint-Émilion wine", "Saint-Émilion", "Merlot-led reds. Most châteaux need a booking for tastings."],
+    ["Saint-Émilion macarons", "Saint-Émilion", "Old-style almond macarons, flat and chewy, made to a convent recipe."]
+  ],
+  lyon: [
+    ["Quenelle de brochet", "Lyon bouchons", "Light pike dumpling baked in a creamy crayfish sauce."],
+    ["Salade lyonnaise", "Lyon bouchons", "Frisée with bacon lardons, croutons and a poached egg."],
+    ["Cervelle de canut", "Lyon bouchons", "Fresh cheese whipped with herbs, shallots and vinegar. The name means 'silk-weaver's brains'."],
+    ["Praline tart", "Lyon bakeries", "Bright pink tart of crushed sugar-coated almonds and cream."],
+    ["Beaujolais and Côtes du Rhône", "Lyon wine bars", "Light reds from just north of the city, and fuller ones from the Rhône to the south."]
+  ],
+  riviera: [
+    ["Socca", "Nice old town", "Thin chickpea pancake baked in a wood oven, served hot with black pepper."],
+    ["Salade niçoise", "Nice", "Tomatoes, eggs, olives, anchovies or tuna and raw vegetables. In Nice, no potatoes or green beans."],
+    ["Pan bagnat", "Nice", "A salade niçoise in a round bread roll soaked in olive oil."],
+    ["Petits farcis", "Nice", "Small vegetables stuffed with meat, herbs and breadcrumbs, baked."],
+    ["Tourte de blettes", "Nice bakeries", "Sweet chard pie with raisins and pine nuts."]
+  ],
+  algarve: [
+    ["Cataplana", "Algarve coast", "Seafood and pork cooked in a closed copper pan shaped like a clam."],
+    ["Frango piri-piri", "Guia, Algarve", "Grilled chicken with chilli oil. Guia is known for it."],
+    ["Grilled fish", "Algarve harbours", "Whole fish grilled on the quay. Sardines are a summer thing; in March ask for the catch of the day."]
+  ]
+});
+
+/* which foods to show for each route in the budget: [region, how many] */
+window.FOOD_ROUTE = {
+  "loire-basque": [["loire", 5], ["spain", 6]],
+  "basque-bordeaux": [["spain", 6], ["bordeaux", 5]],
+  "lyon-provence": [["lyon", 5], ["provence", 6]],
+  "provence-basque": [["provence", 6], ["spain", 6]],
+  "edinburgh-basque": [["scotland", 5], ["spain", 6]],
+  "edinburgh-provence": [["scotland", 5], ["provence", 6]],
+  "scotland-sea": [["scotland", 10]],
+  "spain-coast": [["spain", 10]],
+  "lisbon-azores": [["lisbon", 6], ["azores", 6]],
+  "andalusia-lisbon": [["andalusia", 6], ["algarve", 3], ["lisbon", 5]],
+  "provence-riviera": [["provence", 6], ["riviera", 5]],
+  "socal-coast": [["socal", 9]]
+};
+window.foodFor = id => {
+  const F = window.FOOD, R = window.FOOD_ROUTE[id];
+  if (!R) return (F[id] || []).map(x => x.concat([id]));
+  return R.flatMap(([r, n]) => (F[r] || []).slice(0, n).map(x => x.concat([r])));
+};
+
+/* a Wikipedia article for each dish, for its photo */
+window.FOOD_IMG = {
+  "Pintxos": "Pincho", "Gilda": "Anchovies as food", "Txuleta": "Rib steak", "Bacalao al pil-pil": "Bacalao al pil pil", "Txangurro": "Maja squinado", "Basque cheesecake": "Basque cheesecake",
+  "Fabada asturiana": "Fabada asturiana", "Sidra natural": "Cider", "Cabrales": "Cabrales cheese", "Txakoli": "Txakoli",
+  "Cullen skink": "Cullen skink", "Haggis, neeps and tatties": "Haggis", "Langoustines and scallops": "Nephrops norvegicus", "Arbroath smokie": "Arbroath smokie", "Venison": "Venison",
+  "Smoked salmon": "Smoked salmon", "Full Scottish breakfast": "Full breakfast", "Cranachan": "Cranachan", "Single malt whisky": "Single malt whisky", "Tablet": "Tablet (confectionery)",
+  "Bouillabaisse": "Bouillabaisse", "Le grand aïoli": "Aioli", "Black truffles": "Tuber melanosporum", "Daube provençale": "Daube", "Tapenade and pissaladière": "Pissaladière",
+  "Panisse": "Panelle", "Calissons d'Aix": "Calisson", "Navettes": "Orange flower water", "Goat's cheese (Banon)": "Banon cheese", "Rosé and Cassis white": "Rosé",
+  "Cozido das Furnas": "Cozido à portuguesa", "Lapas": "Limpet", "Alcatra": "Pot roast", "Azorean beef": "Steak", "São Jorge cheese": "São Jorge cheese", "Bolo lêvedo": "English muffin",
+  "Pineapple": "Pineapple", "Gorreana tea": "Gorreana", "Fish of the day": "Sea bream",
+  "Pastel de nata": "Pastel de nata", "Bacalhau à brás": "Bacalhau à Brás", "Amêijoas à Bulhão Pato": "Amêijoas à Bulhão Pato", "Bifana": "Bifana", "Porco preto": "Black Iberian pig",
+  "Açorda alentejana": "Açorda", "Arroz de marisco": "Arroz de marisco", "Azeitão cheese": "Queijo de Azeitão", "Ginjinha": "Ginjinha", "Alentejo red wine": "Alentejo wine",
+  "Jamón ibérico de bellota": "Jamón ibérico", "Salmorejo": "Salmorejo", "Espinacas con garbanzos": "Chickpea", "Pescaíto frito": "Pescaíto frito", "Rabo de toro": "Oxtail",
+  "Torrijas": "Torrija", "Free tapas": "Tapas", "Habas con jamón": "Vicia faba", "Fino and manzanilla": "Sherry", "Oranges": "Bitter orange",
+  "Shrimp and grits": "Shrimp and grits", "She-crab soup": "She-crab soup", "Oyster roast": "Oyster roast", "Frogmore stew": "Frogmore stew", "Fried green tomatoes": "Fried green tomatoes",
+  "Pimento cheese": "Pimento cheese", "Hoppin' John and red rice": "Hoppin' John", "Fried chicken": "Fried chicken", "Benne wafers": "Sesame seed candy", "Pralines": "Praline (nut confection)",
+  "Fish tacos": "Fish taco", "Date shake": "Date shake", "Santa Barbara uni": "Sea urchin", "Santa Barbara spot prawns": "Pandalus platyceros", "Tri-tip": "Tri-tip",
+  "Tacos al pastor and birria": "Al pastor", "Korean barbecue": "Korean barbecue", "Pinot Noir": "Pinot noir", "Ojai Pixie tangerines": "Tangerine",
+  "Rillettes": "Rillettes", "Tarte Tatin": "Tarte Tatin", "Beurre blanc": "Beurre blanc", "Sainte-Maure goat's cheese": "Sainte-Maure de Touraine", "Vouvray and Chinon": "Vouvray AOC",
+  "Canelé": "Canelé", "Arcachon oysters": "Oyster", "Entrecôte bordelaise": "Bordelaise sauce", "Saint-Émilion wine": "Saint-Émilion AOC", "Saint-Émilion macarons": "Macaroon",
+  "Quenelle de brochet": "Quenelle", "Salade lyonnaise": "Frisée", "Cervelle de canut": "Cervelle de canut", "Praline tart": "Praline (nut confection)", "Beaujolais and Côtes du Rhône": "Gamay",
+  "Socca": "Socca", "Salade niçoise": "Salade niçoise", "Pan bagnat": "Pan bagnat", "Petits farcis": "Stuffed vegetables", "Tourte de blettes": "Tourte de blettes",
+  "Cataplana": "Cataplana", "Frango piri-piri": "Piri piri", "Grilled fish": "Sea bream"
+};
+
+/* photo cards for a list from foodFor() */
+window.foodCards = (list, regionNames) => {
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let last = null;
+  return `<div class="foodc">${list.map(([dish, where, what, region]) => {
+    const head = regionNames && region !== last ? `<h4 class="food-r">${esc(regionNames[region] || region)}</h4>` : "";
+    last = region;
+    const t = (window.FOOD_IMG[dish] || dish).replace(/ /g, "_");
+    return `${head}<a class="fc" href="https://en.wikipedia.org/wiki/${encodeURIComponent(t)}" target="_blank" rel="noopener"><div class="fc-i"><img data-wiki="${esc(t)}" alt="${esc(dish)}" loading="lazy"></div><div class="fc-t"><b>${esc(dish)}</b><small>${esc(where)}</small><p>${esc(what)}</p></div></a>`;
+  }).join("")}</div>`;
+};
+window.FOOD_REGION = { spain: "Basque Country & Asturias", scotland: "Scotland", provence: "Provence", azores: "Azores", lisbon: "Lisbon & Alentejo", andalusia: "Andalusia", lowcountry: "Lowcountry", socal: "Southern California", loire: "Loire Valley", bordeaux: "Bordeaux", lyon: "Lyon", riviera: "Nice & the Riviera", algarve: "Algarve" };

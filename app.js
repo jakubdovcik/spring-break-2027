@@ -290,9 +290,8 @@
       </div></div>`;
   }
   function foodBlock(d) {
-    const F = (window.FOOD || {})[d.id]; if (!F) return "";
-    return `<div class="blk" id="s-food"><h2>Foods to try</h2>
-      <ol class="foods">${F.map(([dish, where, what]) => `<li><div><h4>${esc(dish)}</h4><span class="pl">${esc(where)}</span></div><p>${esc(what)}</p></li>`).join("")}</ol></div>`;
+    const F = window.foodFor ? window.foodFor(d.id) : []; if (!F.length) return "";
+    return `<div class="blk" id="s-food"><h2>Foods to try</h2>${window.foodCards(F)}</div>`;
   }
   function mediaBlock(d) {
     const m = (P.media || {})[d.id]; if (!m) return "";

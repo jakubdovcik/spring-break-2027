@@ -661,3 +661,16 @@ a.back{color:var(--accent)}
 .foods .pl{color:var(--mute);font-size:12px}
 .foods p{margin:4px 0 0;color:var(--ink2);font-size:14px}
 @media (max-width:760px){.foods{grid-template-columns:minmax(0,1fr)}}
+
+/* foods to try: photo cards */
+.foodc{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.food-r{grid-column:1/-1;margin:8px 0 -4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);font-weight:600}
+.fc{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;color:inherit;text-decoration:none;background:var(--bg)}
+.fc:hover{border-color:var(--ink2)}
+.fc-i{aspect-ratio:4/3;background:var(--soft);overflow:hidden}
+.fc-i img{width:100%;height:100%;object-fit:cover;display:block}
+.fc-t{padding:10px 12px 12px}
+.fc-t b{display:block;font-family:var(--display,inherit);font-weight:400;font-size:17px}
+.fc-t small{color:var(--mute);font-size:12px}
+.fc-t p{margin:6px 0 0;color:var(--ink2);font-size:13.5px;line-height:1.45}
+@media (max-width:520px){.foodc{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fc-t p{font-size:13px}.fc-t b{font-size:15px}}

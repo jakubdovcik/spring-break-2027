@@ -370,6 +370,7 @@
         <p class="bnote">Good, non-Michelin dinners for two. The starred ones are under each stop above.</p>
       </div>
 
+      ${window.foodFor && window.foodFor(it.id).length ? `<div class="bblk"><h3>Foods to try on this route</h3>${window.foodCards(window.foodFor(it.id), window.FOOD_ROUTE[it.id] && window.FOOD_ROUTE[it.id].length > 1 ? window.FOOD_REGION : null)}</div>` : ""}
       <div class="bblk"><h3>Extras</h3>
         <div class="brow"><span>Spa</span>${stepper("spaN", b.spaN, "", "treatments × $190")}</div>
         <div class="brow"><span>Tours</span>${stepper("tours", b.tours, "", "× $140 (boat, tasting, guide)")}</div>
