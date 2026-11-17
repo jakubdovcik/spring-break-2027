@@ -10,7 +10,7 @@
   const CAR = { compact: ["Compact", 1], suv: ["SUV / estate", 1.35], premium: ["Premium", 1.8] };
   const TAXI = { transit: ["Trains & buses", 50], taxi: ["Taxis", 140], driver: ["Private drivers", 420] };
   const DEF = () => ({
-    it: "spain", origin: "BOS", cabin: "eco", timing: "typical", fare: {}, bags: 2,
+    it: "spain", origin: "BOS", cabin: "eco", timing: "typical", fare: {}, bags: 2, ticket: "through", hub: "london",
     nights: {}, hotel: {}, hotelPrice: {}, dine: {}, nice: 3,
     start: { c: "", n: 1 }, end: { c: "", n: 1 },
     carOn: {}, carDays: {}, carCls: "compact", taxi: "taxi",
@@ -29,6 +29,28 @@
   const carDays = it => st().carDays[it.id] ?? (it.car || 3);
   const baseFare = it => { const b = st(); return b.fare[it.id] || Math.round(it.flight[b.origin] * TIMING[b.timing][1]); };
 
+  /* flights: one through ticket, or a hub round trip plus low-cost legs */
+  const DOMCAB = { eco: ["Economy", 1], prem: ["Extra legroom", 1.3], biz: ["First", 2.5] };
+  const cabins = it => it.domestic ? DOMCAB : B.cabins;
+  const lccOk = it => !!(it.lcc && B.lcc[it.lcc.in] && B.lcc[it.lcc.out]);
+  const hubMode = it => st().ticket === "hub" && lccOk(it);
+  function flightPP(it, mode, hub) {
+    const b = st(), cab = cabins(it)[b.cabin][1], tm = TIMING[b.timing][1];
+    if (mode === "hub" && lccOk(it)) {
+      const i = B.lcc[it.lcc.in][hub], o = B.lcc[it.lcc.out][hub];
+      const change = it.lcc.in === "rail" ? 0 : B.hubChange[hub];
+      return { pp: B.hubFare[b.origin][hub] * cab * tm + (i[1] + o[1]) * tm + change + B.hubChange[hub], inL: i, outL: o };
+    }
+    return { pp: baseFare(it) * cab };
+  }
+  const transfersFor = it => it.transfers.filter(t => !(t[2] === "arrival" && hubMode(it)));
+  window.budgetFlightOptions = id => {
+    const it = IT[id]; if (!it) return null;
+    const o = { through: flightPP(it, "through").pp };
+    if (lccOk(it)) ["london", "paris", "amsterdam"].forEach(h => o[h] = flightPP(it, "hub", h).pp);
+    return o;
+  };
+
   /* one dot per night, grouped by stop: a quiet way to show the shape of a route */
   const glyph = ns => `<span class="ng">${ns.map(n => `<span>${"<i></i>".repeat(Math.max(0, n))}</span>`).join("")}</span>`;
   window.nightsGlyph = glyph;
@@ -46,7 +68,8 @@
   function compute(it) {
     const b = st(), L = legs(it), fx = 1 + b.fx / 100;
     const nights = L.reduce((a, l) => a + l.n, 0);
-    const flights = baseFare(it) * B.cabins[b.cabin][1] * 2 + b.bags * 150;
+    const hm = hubMode(it);
+    const flights = flightPP(it, hm ? "hub" : "through", b.hub).pp * 2 + b.bags * 150 + (hm ? b.bags * B.lccBag * 2 : 0);
     let hotels = 0, daily = 0, dining = 0, fAvg = 0;
     const dinners = [];
     L.forEach(l => {
@@ -59,10 +82,11 @@
     fAvg /= Math.max(1, nights);
     daily += b.dailyAmt * 2 * fAvg * .6;
     dining += b.nice * 200 * fAvg;
-    const bookendHops = [b.start.c, b.end.c].filter(c => c && !it.hubs.includes(c)).length;
+    const hubsNow = hm ? [b.hub] : it.hubs;
+    const bookendHops = it.domestic ? 0 : [b.start.c, b.end.c].filter(c => c && !hubsNow.includes(c)).length;
     const car = carOn(it) ? carDays(it) * B.carPerDay * CAR[b.carCls][1] : 0;
     const noCarExtra = !carOn(it) && it.car ? it.car * 45 : 0;
-    const transport = car + noCarExtra + it.transfers.reduce((a, t) => a + t[1] * 2, 0) + TAXI[b.taxi][1] + (b.start.c || b.end.c ? 60 : 0);
+    const transport = car + noCarExtra + transfersFor(it).reduce((a, t) => a + t[1] * 2, 0) + TAXI[b.taxi][1] + (b.start.c || b.end.c ? 60 : 0);
     const fun = b.spaN * 190 + b.tours * 140 + b.shopping;
     const parts = { flights, hotels: hotels * fx, dining: dining * fx, daily: daily * fx, transport: transport * fx + bookendHops * 300, fun: fun * fx, safety: 0 };
     const sub = Object.values(parts).reduce((a, x) => a + x, 0);
@@ -136,6 +160,22 @@
         <b>${esc(s[0])}</b><small>${esc(B.bases[id].name)}</small><p>${esc(s[3])}</p></a>`).join("")}</div>`;
   }
 
+  function lccBox(it) {
+    const b = st(), f = flightPP(it, "hub", b.hub), hubName = B.bases[b.hub].name, tm = TIMING[b.timing][1];
+    const row = (from, to, how, p) => `<div class="lcl"><span>${from}${to ? " → " + to : ""}</span><em>${esc(how)}</em><b>${usd(p)}</b></div>`;
+    const inName = B.lccAirports[it.lcc.in], outName = B.lccAirports[it.lcc.out];
+    return `<div class="lcbox">
+      ${row(b.origin, hubName, B.hubFrom[b.origin][b.hub] + " · round trip", B.hubFare[b.origin][b.hub] * cabins(it)[b.cabin][1] * tm)}
+      ${row(hubName + (f.inL[2] ? " (" + f.inL[2] + ")" : ""), inName, f.inL[0], f.inL[1] * tm)}
+      ${row(outName, hubName + (f.outL[2] ? " (" + f.outL[2] + ")" : ""), f.outL[0], f.outL[1] * tm)}
+      ${B.hubChange[b.hub] ? row("Airport change", "", b.hub === "london" ? "Heathrow ↔ Gatwick/Stansted" : "CDG ↔ Orly", B.hubChange[b.hub] * (it.lcc.in === "rail" ? 1 : 2)) : ""}
+      <div class="lcl tot2"><span>Per person</span><em></em><b>${usd(f.pp)}</b></div></div>`;
+  }
+  function compareLine(it) {
+    const o = window.budgetFlightOptions(it.id);
+    return `<p class="bnote">Per person, as set: one ticket ${usd(o.through)} · via London ${usd(o.london)} · via Paris ${usd(o.paris)} · via Amsterdam ${usd(o.amsterdam)}</p>`;
+  }
+
   function renderBuild() {
     const b = st(), it = IT[b.it], c = compute(it);
     const legRow = (l, idx) => {
@@ -157,21 +197,25 @@
       <div class="bblk"><h3>${esc(it.name)}</h3><p class="bnote">${esc(it.how)}${it.why ? " " + esc(it.why) : ""}</p>
         ${highlights(c.L)}
         ${c.L.map(legRow).join("")}
-        ${it.transfers.length ? `<div class="trans">${it.transfers.map(t => `<span>${esc(t[0])} <em>${usd(t[1])} pp</em></span>`).join("")}</div>` : ""}
+        ${transfersFor(it).length ? `<div class="trans">${transfersFor(it).map(t => `<span>${esc(t[0])} <em>${usd(t[1])} pp</em></span>`).join("")}</div>` : ""}
       </div>
 
-      <div class="bblk"><h3>A day in a big city?</h3><p class="bnote">These nights come out of your first or last stop, so the trip stays at 8 nights.</p>
+      ${it.domestic ? "" : `<div class="bblk"><h3>A day in a big city?</h3><p class="bnote">These nights come out of your first or last stop, so the trip stays at 8 nights.</p>
         <div class="bk"><label>Start in<select data-bk="start">${cityOpts(b.start.c)}</select></label>${b.start.c ? seg("startn", [[1, "1 night"], [2, "2 nights"]], b.start.n) : ""}</div>
         <div class="bk"><label>End in<select data-bk="end">${cityOpts(b.end.c)}</select></label>${b.end.c ? seg("endn", [[1, "1 night"], [2, "2 nights"]], b.end.n) : ""}</div>
-      </div>
+        ${hubMode(it) ? `<p class="bnote">Tip: you're connecting through ${B.bases[b.hub].name}, so a night there costs no extra travel.</p>` : ""}
+      </div>`}
 
       <div class="bblk"><h3>Flights</h3>
         <div class="brow"><span>From</span>${seg("origin", [["BOS", "Boston"], ["BWI", "Baltimore"]], b.origin)}</div>
-        <div class="brow"><span>Cabin</span>${seg("cabin", Object.entries(B.cabins).map(([v, x]) => [v, x[0]]), b.cabin)}</div>
+        ${lccOk(it) ? `<div class="brow"><span>Ticket</span>${seg("ticket", [["through", "One ticket all the way"], ["hub", "Hub + low-cost"]], b.ticket)}</div>` : ""}
+        ${hubMode(it) ? `<div class="brow"><span>Hub</span>${seg("hub", [["london", "London"], ["paris", "Paris"], ["amsterdam", "Amsterdam"]], b.hub)}</div>` : ""}
+        <div class="brow"><span>Cabin</span>${seg("cabin", Object.entries(cabins(it)).map(([v, x]) => [v, x[0]]), b.cabin)}</div>
         <div class="brow"><span>Booking</span>${seg("timing", Object.entries(TIMING).map(([v, x]) => [v, x[0]]), b.timing)}</div>
-        <div class="brow"><span>Fare</span><label class="hcust">$<input type="number" min="0" step="10" inputmode="numeric" placeholder="${Math.round(it.flight[b.origin] * TIMING[b.timing][1])}" value="${b.fare[it.id] || ""}" data-fare="${it.id}">per person, economy round trip</label></div>
+        ${hubMode(it) ? lccBox(it) : `<div class="brow"><span>Fare</span><label class="hcust">$<input type="number" min="0" step="10" inputmode="numeric" placeholder="${Math.round(it.flight[b.origin] * TIMING[b.timing][1])}" value="${b.fare[it.id] || ""}" data-fare="${it.id}">per person, economy round trip</label></div>`}
         <div class="brow"><span>Bags</span>${stepper("bags", b.bags, "", b.bags === 1 ? "checked bag" : "checked bags")}</div>
-        <p class="bnote">Paste a real fare when you find one and it replaces my estimate. Bags are about $150 each, round trip.</p>
+        <p class="bnote">${hubMode(it) ? `Separate tickets: if the transatlantic flight is late, the low-cost airline won't wait. Leave 3+ hours, or sleep a night in the hub. Low-cost bags are about $${B.lccBag} each per flight, on top of the transatlantic allowance.` : "Paste a real fare when you find one and it replaces my estimate. Bags are about $150 each, round trip."}</p>
+        ${lccOk(it) ? compareLine(it) : ""}
       </div>
 
       <div class="bblk"><h3>Getting around</h3>
@@ -203,12 +247,12 @@
 
   function renderSum() {
     const b = st(), it = IT[b.it], c = compute(it);
-    const ok = c.nights === B.nightsTarget;
+    const target = it.nightsTarget || B.nightsTarget, ok = c.nights === target;
     $("#b-sum").innerHTML = `
       <div class="tot"><small>Estimated total for two</small><b>${usd(c.total)}</b><span>Likely range ${k(c.low)} – ${k(c.high)} · ${usd(c.total / 2)} per person · ${usd(c.total / Math.max(1, c.nights))} per night</span></div>
       <div class="stack">${CATS.map(([key, , col]) => `<i style="width:${c.parts[key] / c.total * 100}%;background:${col}"></i>`).join("")}</div>
       <table class="brk">${CATS.map(([key, l, col]) => `<tr><td><i style="background:${col}"></i>${l}</td><td>${usd(c.parts[key])}</td></tr>`).join("")}</table>
-      <div class="nchk ${ok ? "" : "warn"}">${ok ? `✓ ${c.nights} nights, Sat 13 → Sun 21` : `${c.nights} nights. The dates fit ${B.nightsTarget}, so adjust with − / +`}</div>
+      <div class="nchk ${ok ? "" : "warn"}">${ok ? `✓ ${c.nights} nights, ${target === 9 ? "Fri 12" : "Sat 13"} → Sun 21` : `${c.nights} nights. The dates fit ${target}, so adjust with − / +`}</div>
       ${c.dinners.length ? `<p class="bnote">Starred dinners: ${c.dinners.map(esc).join(", ")}</p>` : `<p class="bnote">Tap a restaurant under any stop to add it.</p>`}
       ${c.bookendHops ? `<p class="bnote">Includes ~$300 for each city stop that isn't on your flight path.</p>` : ""}`;
   }

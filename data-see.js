@@ -154,3 +154,25 @@ window.SEE = {
     ["Georgian squares & pubs", "town", "Merrion_Square", "Doors, squares, a pint by the fire."]
   ]
 };
+
+Object.assign(window.SEE, {
+  charleston: [
+    ["Middleton Place", "nature", "Middleton_Place", "Terraced gardens and azaleas at their March peak."],
+    ["Rainbow Row & the Battery", "town", "The_Battery_(Charleston)", "Pastel houses and the harbour promenade."],
+    ["Angel Oak", "nature", "Angel_Oak", "A live oak around 400 years old with a canopy the size of a house."],
+    ["Folly Beach", "nature", "Folly_Beach,_South_Carolina", "Long beach walks and a pier at sunset."],
+    ["Fort Sumter", "sight", "Fort_Sumter", "Boat across the harbour to where the Civil War began."]
+  ],
+  lowcountry: [
+    ["Kiawah Island beaches", "nature", "Kiawah_Island,_South_Carolina", "Ten miles of empty beach, dolphins in the creeks."],
+    ["Hunting Island", "nature", "Hunting_Island_State_Park", "Boneyard beach and a climbable lighthouse."],
+    ["Beaufort", "town", "Beaufort,_South_Carolina", "Antebellum waterfront town under the oaks."]
+  ],
+  savannah: [
+    ["Wormsloe oak avenue", "nature", "Wormsloe_Historic_Site", "A mile of live oaks and Spanish moss."],
+    ["Forsyth Park", "nature", "Forsyth_Park", "The fountain, azaleas and Saturday market."],
+    ["The historic squares", "town", "Chippewa_Square", "Twenty-two shady squares to wander between."],
+    ["Bonaventure Cemetery", "sight", "Bonaventure_Cemetery", "Gothic, mossy and strangely peaceful."],
+    ["Tybee Island", "nature", "Tybee_Island,_Georgia", "Beach and lighthouse, 30 min out."]
+  ]
+});

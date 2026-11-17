@@ -386,6 +386,74 @@ window.TRIP = {
       ],
       photos: ["Seville", "Plaza_de_España_(Seville)", "Ronda", "Alhambra"],
       flights: { summary: "Direct BOS → MAD or IAD → MAD, then the AVE train south.", legs: [{ from: "BOS / IAD", to: "MAD", by: "Iberia / United", direct: true }, { from: "Madrid Atocha", to: "Seville", by: "AVE, 2 h 30", direct: true }], searchIn: "SVQ", searchOut: "AGP" }
+    },
+    {
+      id: "lowcountry",
+      name: "Charleston & Savannah",
+      region: "South Carolina · Georgia Lowcountry",
+      proposedBy: "Wildcard",
+      color: "#5B7F5A",
+      wildcard: true,
+      domestic: true,
+      tagline: "No jet lag, azaleas in bloom, live oaks, porches and Southern cooking. The easiest trip on the list.",
+      hero: "Charleston,_South_Carolina",
+      unsplash: "charleston-south-carolina",
+      weather: { hi: 21, lo: 8, rainDays: 8, daylight: "12h 05m", sea: 16, summary: "Spring days around 70°F with azaleas and wisteria out. Cool evenings and the odd thunderstorm." },
+      scores: { relax: 5, food: 4, cozy: 4, weather: 4, ease: 5 },
+      budget: "$$$",
+      pros: ["2 h 30 direct flight, no jet lag, no passports", "Peak azalea and garden season", "Slow, walkable towns, and you can leave Friday for a 9th night"],
+      cons: ["Not Europe", "Spring is high season, so hotels are pricey", "Beaches are pretty, but too cold to swim"],
+      stops: [
+        { name: "Charleston", lat: 32.7765, lng: -79.9311, nights: 4, wiki: "Charleston,_South_Carolina", desc: "Rainbow Row, the Battery, King Street, oysters." },
+        { name: "Middleton Place", lat: 32.8998, lng: -80.1376, nights: 0, wiki: "Middleton_Place", desc: "America's oldest landscaped gardens, azaleas in March." },
+        { name: "Palmetto Bluff / Kiawah", lat: 32.18, lng: -80.87, nights: 2, wiki: "Kiawah_Island,_South_Carolina", desc: "Resort and spa days among live oaks and marsh." },
+        { name: "Savannah", lat: 32.0809, lng: -81.0912, nights: 3, wiki: "Savannah,_Georgia", desc: "Twenty-two squares, Spanish moss, Forsyth Park." },
+        { name: "Wormsloe", lat: 31.98, lng: -81.07, nights: 0, wiki: "Wormsloe_Historic_Site", desc: "A mile-long avenue of live oaks." },
+        { name: "Tybee Island", lat: 32.0002, lng: -80.8454, nights: 0, wiki: "Tybee_Island,_Georgia", desc: "Beach walk and lighthouse." }
+      ],
+      days: [
+        { d: "Fri 12", t: "Daytime direct flight BOS/BWI → Charleston (~2 h 30). Dinner on King Street. That's an extra night compared with Europe." },
+        { d: "Sat 13", t: "Rainbow Row, the Battery, the harbour walk, oysters at Leon's." },
+        { d: "Sun 14", t: "Middleton Place gardens with the azaleas at peak. Angel Oak on the way back." },
+        { d: "Mon 15", t: "Slow day: Folly Beach walk, sunset sail in the harbour." },
+        { d: "Tue 16", t: "Drive to Palmetto Bluff (1 h 30) or Kiawah (40 min). Spa, bikes, river." },
+        { d: "Wed 17", t: "Do nothing. Canoe on the May River or a long beach walk." },
+        { d: "Thu 18", t: "On to Savannah (40 min from the Bluff). Walk the squares to Forsyth Park." },
+        { d: "Fri 19", t: "Wormsloe's oak avenue, Bonaventure Cemetery, dinner at The Grey." },
+        { d: "Sat 20", t: "Tybee Island beach and lighthouse, or a lazy morning and Leopold's ice cream." },
+        { d: "Sun 21", t: "Direct SAV → BOS/BWI. Home by early afternoon." }
+      ],
+      stays: [
+        { name: "Zero George", place: "Charleston", price: "$$$$", tag: "Five restored 1800s houses", why: "Courtyard, cooking school and quiet rooms on a residential street. Very cozy.", url: "https://www.google.com/search?q=Zero+George+Charleston", highlight: true },
+        { name: "Wentworth Mansion", place: "Charleston", price: "$$$$", tag: "Gilded Age mansion", why: "Fireplaces, a cupola with a view over the rooftops, and Circa 1886 downstairs.", url: "https://www.google.com/search?q=Wentworth+Mansion+Charleston" },
+        { name: "Hotel Bennett", place: "Charleston", price: "$$$$$", tag: "Grand, on Marion Square", why: "Rooftop pool and a French patisserie.", url: "https://www.google.com/search?q=Hotel+Bennett+Charleston" },
+        { name: "Montage Palmetto Bluff", place: "Bluffton, SC", price: "$$$$$", tag: "Riverside resort + spa", why: "20,000 acres of live oaks and marsh, with bikes, canoes and a big spa. The most passive stop on any route.", url: "https://www.google.com/search?q=Montage+Palmetto+Bluff", highlight: true },
+        { name: "The Sanctuary, Kiawah Island", place: "Kiawah Island, SC", price: "$$$$$", tag: "Oceanfront resort", why: "Ten miles of beach, a spa, close to Charleston.", url: "https://www.google.com/search?q=The+Sanctuary+Kiawah" },
+        { name: "The Gastonian", place: "Savannah", price: "$$$", tag: "Fireplace in every room", why: "Two 1868 mansions joined by a garden.", url: "https://www.google.com/search?q=The+Gastonian+Savannah", highlight: true },
+        { name: "Perry Lane Hotel", place: "Savannah", price: "$$$$", tag: "Stylish, rooftop bar", why: "Design hotel in the historic district.", url: "https://www.google.com/search?q=Perry+Lane+Hotel+Savannah" }
+      ],
+      eat: [
+        { name: "FIG", place: "Charleston", stars: 0, note: "A Charleston landmark since 2003. The new Michelin American South guide covers the city, so check for stars." },
+        { name: "The Ordinary", place: "Charleston", stars: 0, note: "Oyster hall in an old bank." },
+        { name: "Husk", place: "Charleston", stars: 0, note: "Southern ingredients only." },
+        { name: "Leon's Oyster Shop · Rodney Scott's BBQ", place: "Charleston", stars: 0, note: "Fried chicken and oysters; whole-hog barbecue." },
+        { name: "The Grey", place: "Savannah", stars: 0, note: "Mashama Bailey's restaurant in a 1938 Greyhound station." },
+        { name: "Elizabeth on 37th", place: "Savannah", stars: 0, note: "Southern fine dining in a mansion." },
+        { name: "Mrs. Wilkes' Dining Room", place: "Savannah", stars: 0, note: "Shared tables, a dozen dishes, lunch only. Queue early." }
+      ],
+      do: [
+        { t: "Middleton Place azaleas", relax: true },
+        { t: "Sunset harbour sail", relax: true },
+        { t: "Spa day at Montage or the Sanctuary", relax: true },
+        { t: "Squares and Forsyth Park", relax: true },
+        { t: "Wormsloe oak avenue", relax: true },
+        { t: "Folly Beach or Tybee walk", relax: true },
+        { t: "Bike the Palmetto Bluff trails", relax: false },
+        { t: "Kayak the salt marsh", relax: false },
+        { t: "Day trip to Beaufort", relax: false }
+      ],
+      photos: ["Charleston,_South_Carolina", "The_Battery_(Charleston)", "Middleton_Place", "Forsyth_Park", "Wormsloe_Historic_Site", "Angel_Oak", "Tybee_Island,_Georgia"],
+      flights: { summary: "Direct domestic flights, about 2 h 30. Into Charleston, home from Savannah.", legs: [{ from: "BOS", to: "CHS", by: "JetBlue / Delta / American (check)", direct: true }, { from: "BWI", to: "CHS", by: "Southwest", direct: true }, { from: "SAV", to: "BOS", by: "JetBlue / Delta (check)", direct: true }, { from: "SAV", to: "BWI", by: "Southwest", direct: true }], searchIn: "CHS", searchOut: "SAV" }
     }
   ]
 };
