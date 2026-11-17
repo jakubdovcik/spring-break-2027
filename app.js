@@ -326,6 +326,25 @@
   }
 
   /* ---------------- notes ---------------- */
+  function caseBlock() {
+    const C = window.CASE && window.CASE.him; if (!C) return "";
+    const ids = ["spain", "scotland", "provence"].filter(id => byId[id]);
+    const row = (label, f) => `<tr><td>${label}</td>${ids.map(id => `<td class="${id === C.route ? "win" : ""}">${f(byId[id], id)}</td>`).join("")}</tr>`;
+    return `<section class="case">
+      <div class="case-h"><small>${esc(S.names.a)}'s case</small><h2>${esc(C.title)}</h2><p>${esc(C.pitch)}</p></div>
+      <table class="case-t"><tr><th></th>${ids.map(id => `<th class="${id === C.route ? "win" : ""}">${esc(byId[id].name)}</th>`).join("")}</tr>
+        ${row("Mid-March high", d => `${d.weather.hi}°C / ${Math.round(d.weather.hi * 9 / 5 + 32)}°F`)}
+        ${row("Michelin-starred tables", d => d.eat.filter(e => e.stars).length)}
+        ${row("Spa hotels to pick from", d => d.stays.filter(x => /spa/i.test(x.tag + " " + x.why)).length)}
+        ${row("Est. total for two", (d, id) => window.budgetQuick(id) ? "$" + (Math.round(window.budgetQuick(id) / 100) / 10) + "k" : "–")}
+      </table>
+      <ol class="case-p">${C.points.map(p => `<li><b>${esc(p[0])}.</b> ${esc(p[1])}</li>`).join("")}</ol>
+      <h3>Objections, answered</h3>
+      <div class="case-o">${C.objections.map(o => `<div><b>${esc(o[0])}</b><p>${esc(o[1])}</p></div>`).join("")}</div>
+      <div class="btns"><a class="btn dark" href="#/d/${C.route}">See the Spain route</a><a class="btn" href="#/budget/${C.route}">Price it</a><a class="btn" href="#/budget/provence-basque">Provence → San Sebastián combo</a></div>
+    </section>`;
+  }
+
   function renderNotes() {
     $("#view-notes").innerHTML = `<div class="wrap"><div class="notes-grid">
       <div><div class="section-h"><h2>Good to know</h2></div><ul>${T.notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul></div>
@@ -334,7 +353,7 @@
         <textarea id="notes" placeholder="Must-haves, dealbreakers, budget, 'no more than 2 hotel changes'…">${esc(S.notes)}</textarea>
         <div class="btns"><button class="btn dark" id="share">Copy share link</button><button class="btn" id="reset">Reset ratings</button></div>
         <p style="color:var(--mute);font-size:13px">Ratings and notes save in this browser only. The share link carries them to the other person's browser.</p>
-      </div></div></div>`;
+      </div></div>${caseBlock()}</div>`;
   }
 
   /* ---------------- router ---------------- */

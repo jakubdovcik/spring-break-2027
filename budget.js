@@ -113,7 +113,7 @@
   window.budgetSegments = id => {
     const it = IT[id]; if (!it) return [];
     return segments(it, it.legs.map(l => ({ id: l[0] }))).map(s => ({ from: B.bases[s.a].name, to: B.bases[s.z].name,
-      opts: s.opts.map(o => ({ mode: MODE[o[0]], time: fmtH(o[1]), cost: segLabel(o), note: o[3] })) }));
+      opts: s.opts.map(o => ({ mode: MODE[o[0]], h: o[1], time: fmtH(o[1]), cost: segLabel(o), note: o[3] })) }));
   };
 
   /* one dot per night, grouped by stop: a quiet way to show the shape of a route */
