@@ -637,3 +637,11 @@ a.back{color:var(--accent)}
   .blk{break-inside:avoid}
 }
 @media (max-width:420px){#nav{gap:0}#nav button{padding:7px 6px;font-size:13px}}
+.meds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.med{display:block;border:1px solid var(--line);border-radius:12px;padding:16px 18px;color:inherit;text-decoration:none;background:var(--bg)}
+.med:hover{border-color:var(--ink2)}
+.med h3{font-size:18px;margin:6px 0 2px;font-family:var(--display,inherit);font-weight:400}
+.med .tg{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);font-weight:600}
+.med .pl{color:var(--mute);font-size:13px}
+.med p{color:var(--ink2);font-size:14px;margin:8px 0 0}
+@media (max-width:760px){.meds{grid-template-columns:minmax(0,1fr)}}

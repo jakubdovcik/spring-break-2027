@@ -174,3 +174,39 @@ window.PLAN = {
     "edinburgh-basque": ["uk", "ie", "eu"], "edinburgh-provence": ["uk", "ie", "eu"]
   }
 };
+
+/* something to watch or read on the way there: [title, by, year, length, why] */
+window.PLAN.media = {
+  spain: {
+    book: ["The Basque History of the World", "Mark Kurlansky", 1999, "", "Cod, whaling, the language nobody can trace, and how Basque food got so good. Easy to dip in and out of."],
+    film: ["Spanish Affair (Ocho apellidos vascos)", "Emilio Martínez-Lázaro", 2014, "98 min", "A man from Seville pretends to be Basque to win over a girl from a Basque village. Spain's biggest box-office comedy, and full of the stereotypes you'll then spot."]
+  },
+  scotland: {
+    book: ["Kidnapped", "Robert Louis Stevenson", 1886, "", "An Edinburgh writer's chase across the Highlands after the Jacobite rising. Short, and it ends in Edinburgh."],
+    film: ["Local Hero", "Bill Forsyth", 1983, "111 min", "A Texas oil man is sent to buy a Scottish fishing village and slowly stops wanting to. Gentle and funny."]
+  },
+  provence: {
+    book: ["A Year in Provence", "Peter Mayle", 1989, "", "An English couple's first year in a Luberon farmhouse, month by month, starting with the mistral. Set where you'd be staying."],
+    film: ["Jean de Florette", "Claude Berri", 1986, "120 min", "Two farmers plot to ruin a newcomer by hiding his spring. Filmed in the Provence hills; the second part is Manon des Sources."]
+  },
+  azores: {
+    book: ["Stormy Isles: An Azorean Tale (Mau Tempo no Canal)", "Vitorino Nemésio", 1944, "", "The classic Azorean novel: whaling families, island society and the weather between the islands."],
+    film: ["Moby-Dick", "John Huston, from Melville's novel", 1956, "116 min", "Azorean sailors crewed the New England whaling ships, which is why so many Azorean families ended up around Boston. Melville mentions them in the novel."]
+  },
+  lisbon: {
+    book: ["Night Train to Lisbon", "Pascal Mercier", 2004, "", "A Swiss teacher walks out of class, takes the train to Lisbon and traces a doctor who resisted Salazar's dictatorship."],
+    film: ["Lisbon Story", "Wim Wenders", 1994, "100 min", "A sound engineer wanders Lisbon recording the city. Slow, and mostly about the light, the trams and fado (Madredeus play themselves)."]
+  },
+  andalusia: {
+    book: ["Tales of the Alhambra", "Washington Irving", 1832, "", "An American writer lived in the empty Alhambra palace in 1829 and wrote down its legends. Read it before Granada."],
+    film: ["Carmen", "Carlos Saura", 1983, "102 min", "A flamenco company rehearses Carmen and the story takes over their lives. Mostly dance, with Paco de Lucía on guitar."]
+  },
+  lowcountry: {
+    book: ["Midnight in the Garden of Good and Evil", "John Berendt", 1994, "", "A true murder case among Savannah's eccentrics. You'll recognise Mercer House and Bonaventure Cemetery."],
+    film: ["Forrest Gump", "Robert Zemeckis", 1994, "142 min", "The bench scenes were filmed in Savannah's Chippewa Square, and much of the rest around Beaufort, South Carolina."]
+  },
+  socal: {
+    book: ["Slouching Towards Bethlehem", "Joan Didion", 1968, "", "Essays on California in the 1960s. Short pieces, good for a flight."],
+    film: ["Sideways", "Alexander Payne", 2004, "127 min", "Two friends on a week of wine tasting in the Santa Barbara hills. You'll pass the same wineries and diners."]
+  }
+};

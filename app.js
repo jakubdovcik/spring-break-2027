@@ -289,6 +289,12 @@
           <p class="sub">Rules change. Check the official sites before you book.</p></div>
       </div></div>`;
   }
+  function mediaBlock(d) {
+    const m = (P.media || {})[d.id]; if (!m) return "";
+    const card = (kind, x) => x ? `<a class="med" href="https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(x[0].split(" (")[0] + " " + (kind === "Film" ? x[2] + " film" : x[1]))}" target="_blank" rel="noopener">
+      <span class="tg">${kind}${x[3] ? " · " + esc(x[3]) : ""}</span><h3>${esc(x[0])}</h3><span class="pl">${esc(x[1])}, ${x[2]}</span><p>${esc(x[4])}</p></a>` : "";
+    return `<div class="blk" id="s-read"><h2>For the flight</h2><div class="meds">${card("Book", m.book)}${card("Film", m.film)}</div></div>`;
+  }
   function planBBlock(d) {
     const pl = planOf(d.id); if (!pl.wet && !pl.miss) return "";
     return `<div class="blk" id="s-b"><h2>Plan B</h2>
@@ -317,7 +323,7 @@
       <div class="strip">${d.photos.slice(1, 7).map(p => `<a href="${wikiUrl(p)}" target="_blank" rel="noopener"><img data-wiki="${esc(p)}" alt="${esc(pretty(p))}" loading="lazy"><span>${esc(pretty(p))}</span></a>`).join("")}<a class="strip-more" href="https://unsplash.com/s/photos/${d.unsplash}" target="_blank" rel="noopener">More photos ↗</a></div>
       <p class="tagline lead">${esc(d.tagline)}</p>${planOf(d.id).down ? `<p class="catch"><b>The catch:</b> ${esc(planOf(d.id).down)}</p>` : ""}
       <div class="d-head"><a class="btn dark" href="#/budget/${d.id}">Price this trip · ≈ $${Math.round(window.budgetQuick(d.id) / 100) / 10}k for two →</a>${rateWidget(d.id)}<button class="btn ${S.chosen === d.id ? "dark" : ""}" data-choose="${d.id}">${S.chosen === d.id ? "✓ Our trip · open plan" : "We're going here"}</button></div>
-      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-disc">Discover</a><a href="#s-route">Route</a><a href="#s-pace">Pace</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-go">Before you go</a><a href="#s-b">Plan B</a><a href="#s-pc">Pros & cons</a></nav>
+      <nav class="subnav"><a href="#s-see">Highlights</a><a href="#s-disc">Discover</a><a href="#s-route">Route</a><a href="#s-pace">Pace</a><a href="#s-move">Getting around</a><a href="#s-add">Add-ons</a><a href="#s-stay">Where to stay</a><a href="#s-eat">Eat</a><a href="#s-do">Do</a><a href="#s-wx">Weather</a><a href="#s-fly">Getting there</a><a href="#s-read">For the flight</a><a href="#s-go">Before you go</a><a href="#s-b">Plan B</a><a href="#s-pc">Pros & cons</a></nav>
 
       <div class="blk" id="s-see"><h2>Highlights: nature &amp; sights</h2>${highlightTiles(d.id)}</div>
 
@@ -364,6 +370,7 @@
         ${hubTable(d.id)}
       </div>
 
+      ${mediaBlock(d)}
       ${goBlock(d)}
       ${planBBlock(d)}
 
@@ -550,6 +557,7 @@
       <div class="blk"><h2>Day by day</h2><ol class="days">${d.days.map(x => `<li><span class="dd">${esc(x.d)}</span><span class="tt">${esc(x.t)}</span></li>`).join("")}</ol>
         ${r && r.legs.length !== d.stops.filter(s => s.nights).length ? `<p class="sub">This is the standard route. Your budget route has different stops, so shift the days to match.</p>` : ""}</div>
       ${planBBlock(d)}
+      ${mediaBlock(d)}
     </div>`;
   }
 
