@@ -14,14 +14,15 @@
     nights: {}, hotel: {}, hotelPrice: {}, dine: {}, nice: 3,
     start: { c: "", n: 1 }, end: { c: "", n: 1 },
     carOn: {}, carDays: {}, carCls: "compact", taxi: "taxi",
-    seeKind: "all", dailyAmt: 85, dv: 2, spaN: 2, tours: 2, shopping: 300, fx: 0, ins: true, buffer: 10
+    seeKind: "all", dailyAmt: 85, dv: 3, spaN: 0, tours: 0, shopping: 0, fx: 0, ins: true, buffer: 10
   });
 
   function st() {
     const S = window.APP.S;
     S.budget = Object.assign(DEF(), S.budget || {});
     const b = S.budget;
-    if (b.dv !== 2) { b.dailyAmt = ({ 90: 60, 150: 85, 240: 130 })[b.dailyAmt] || Math.round(b.dailyAmt * .6 / 5) * 5; b.dv = 2; }
+    if (b.dv < 2 || b.dv == null) { b.dailyAmt = ({ 90: 60, 150: 85, 240: 130 })[b.dailyAmt] || Math.round(b.dailyAmt * .6 / 5) * 5; b.dv = 2; }
+    if (b.dv === 2) { if (b.spaN === 2) b.spaN = 0; if (b.tours === 2) b.tours = 0; if (b.shopping === 300) b.shopping = 0; b.dv = 3; }
     return b;
   }
   const save = () => window.APP.save();
