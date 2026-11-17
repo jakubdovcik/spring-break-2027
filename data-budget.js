@@ -8,7 +8,7 @@
 window.BUDGET = {
   nightsTarget: 8,
   cabins: { eco: ["Economy", 1], prem: ["Premium economy", 1.9], biz: ["Business", 4.5] },
-  daily: { lean: ["Lean", 85], mid: ["Comfortable", 150], treat: ["Treat ourselves", 240] }, // per person per day: meals (not the splurge dinners), coffee, museums, small things
+  daily: { lean: ["Lean", 60], mid: ["Comfortable", 85], treat: ["Treat ourselves", 130] }, // per person per day: meals (not the splurge dinners), coffee, museums, small things
   carPerDay: 85,        // compact automatic + basic insurance + fuel/tolls/parking
   airportTaxis: 140,    // a few airport/station transfers, for two
   spa: 380,             // a couples' treatment or two

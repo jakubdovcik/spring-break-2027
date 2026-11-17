@@ -14,13 +14,15 @@
     nights: {}, hotel: {}, hotelPrice: {}, dine: {}, nice: 3,
     start: { c: "", n: 1 }, end: { c: "", n: 1 },
     carOn: {}, carDays: {}, carCls: "compact", taxi: "taxi",
-    seeKind: "all", dailyAmt: 150, spaN: 2, tours: 2, shopping: 300, fx: 0, ins: true, buffer: 10
+    seeKind: "all", dailyAmt: 85, dv: 2, spaN: 2, tours: 2, shopping: 300, fx: 0, ins: true, buffer: 10
   });
 
   function st() {
     const S = window.APP.S;
     S.budget = Object.assign(DEF(), S.budget || {});
-    return S.budget;
+    const b = S.budget;
+    if (b.dv !== 2) { b.dailyAmt = ({ 90: 60, 150: 85, 240: 130 })[b.dailyAmt] || Math.round(b.dailyAmt * .6 / 5) * 5; b.dv = 2; }
+    return b;
   }
   const save = () => window.APP.save();
   const hotelIdx = id => { const b = st(), h = B.bases[id].hotels; return b.hotel[id] ?? B.bases[id].def ?? (h.length >= 3 ? 1 : 0); };
@@ -180,8 +182,10 @@
       base.dine.forEach((d, i) => { if (b.dine[l.id + "|" + i]) { dining += d[1]; dinners.push(d[0]); } });
     });
     fAvg /= Math.max(1, nights);
-    daily += b.dailyAmt * 2 * fAvg * .6;
+    daily += b.dailyAmt * 2 * fAvg * .5;
     dining += b.nice * 200 * fAvg;
+    const dinnersOut = Math.min(nights, b.nice + dinners.length);
+    daily -= dinnersOut * b.dailyAmt * 2 * fAvg * .35;
     const hubsNow = hm ? [curHub()] : it.hubs;
     const bookendHops = it.domestic ? 0 : [b.start.c, b.end.c].filter(c => c && !hubsNow.includes(c)).length;
     const car = carOn(it) ? carDays(it) * B.carPerDay * CAR[b.carCls][1] : 0;
@@ -356,8 +360,8 @@
       </div>
 
       <div class="bblk"><h3>Eating & spending</h3>
-        <div class="brow"><span>Style</span>${seg("preset", [[90, "Lean"], [150, "Comfortable"], [240, "Treat ourselves"]], b.dailyAmt)}</div>
-        ${slider("dailyAmt", 60, 350, 10, b.dailyAmt, FMT.dailyAmt, "Everyday spend: lunches, casual dinners, coffee, museums")}
+        <div class="brow"><span>Style</span>${seg("preset", [[60, "Lean"], [85, "Comfortable"], [130, "Treat ourselves"]], b.dailyAmt)}</div>
+        ${slider("dailyAmt", 40, 250, 5, b.dailyAmt, FMT.dailyAmt, "Per person: coffee, lunch, a casual dinner, museum tickets")}
         <div class="brow"><span>Nice dinners</span>${stepper("nice", b.nice, "", "× ~$200")}</div>
         <p class="bnote">Good, non-Michelin dinners for two. The starred ones are under each stop above.</p>
       </div>
