@@ -84,7 +84,7 @@
     D.forEach(d => {
       if (status(d.id) === "out") return;
       const ll = d.stops.map(s => [s.lat, s.lng]);
-      for (let i = 0; i < ll.length - 1; i++) window.routeLine(layer, ll[i], ll[i + 1], undefined, { color: d.color, weight: 2.5, opacity: .6 });
+      for (let i = 0; i < ll.length - 1; i++) window.routeLine(layer, ll[i], ll[i + 1], d.stops[i + 1].by, { color: d.color, weight: 2.5, opacity: .6 });
       d.stops.forEach(s => L.marker([s.lat, s.lng], { icon: L.divIcon({ className: "", html: `<div class="pin sm" style="background:${d.color}"></div>`, iconSize: [14, 14], iconAnchor: [7, 7] }) }).bindPopup(popup(s, d)).addTo(layer));
       const c = d.stops.find(s => s.nights) || d.stops[0];
       const lbl = L.marker([c.lat, c.lng], { icon: L.divIcon({ className: "", html: `<div class="pin lbl"><b>${esc(d.name)}</b> · ${d.weather.hi}°</div>`, iconSize: null, iconAnchor: [-10, 14] }), zIndexOffset: 500 }).addTo(layer);
@@ -97,7 +97,7 @@
     layer.clearLayers();
     for (const k in markers) delete markers[k];
     const ll = d.stops.map(s => [s.lat, s.lng]);
-    for (let i = 0; i < ll.length - 1; i++) window.routeLine(layer, ll[i], ll[i + 1], undefined, { color: d.color, weight: 3.5, opacity: .85 });
+    for (let i = 0; i < ll.length - 1; i++) window.routeLine(layer, ll[i], ll[i + 1], d.stops[i + 1].by, { color: d.color, weight: 3.5, opacity: .85 });
     d.stops.forEach((s, i) => {
       markers[i] = L.marker([s.lat, s.lng], { icon: L.divIcon({ className: "", html: `<div class="pin" style="background:${d.color}">${i + 1}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] }) }).bindPopup(popup(s, d)).addTo(layer);
     });

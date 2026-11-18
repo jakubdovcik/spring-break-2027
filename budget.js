@@ -397,7 +397,7 @@
   function renderSum() {
     const b = st(), it = IT[b.it], c = compute(it);
     const target = tgt(it), ok = c.nights === target, ext = b.len === "extend" && c.nights > target;
-    const arrive = new Date(2027, 2, target === 9 ? 12 : 13), home = new Date(arrive); home.setDate(home.getDate() + c.nights);
+    const arrive = new Date(2027, 2, target === 9 || it.redeye ? 12 : 13), home = new Date(arrive); home.setDate(home.getDate() + c.nights);
     const fmtD = d => d.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
     const mt = $("#mtot");
     if (mt) mt.innerHTML = `<div><b>${usd(c.total)}</b><span>for two · ${c.nights} nights · ${esc(it.name)}</span></div><button data-jump="1">Breakdown</button>`;
@@ -405,8 +405,8 @@
       <div class="tot"><small>Estimated total for two</small><b>${usd(c.total)}</b><span>Likely range ${k(c.low)} – ${k(c.high)} · ${usd(c.total / 2)} per person · ${usd(c.total / Math.max(1, c.nights))} per night</span></div>
       <div class="stack">${CATS.map(([key, , col]) => `<i style="width:${c.parts[key] / c.total * 100}%;background:${col}"></i>`).join("")}</div>
       <table class="brk">${CATS.map(([key, l, col]) => `<tr><td><i style="background:${col}"></i>${l}</td><td>${usd(c.parts[key])}</td></tr>`).join("")}</table>
-      <div class="nchk ${ok || ext ? "" : "warn"}">${ok ? `✓ ${c.nights} nights, ${target === 9 ? "Fri 12" : "Sat 13"} → Sun 21` : ext ? `${c.nights} nights: ${fmtD(arrive)} → home ${fmtD(home)}. That's ${c.nights - target} extra day${c.nights - target > 1 ? "s" : ""} off.` : `${c.nights} nights. The dates fit ${target}, so adjust with − / +`}</div>
-      <p class="bnote">≈ ${fmtH(c.travelH)} of travel between stops${c.segs.some(s => s.o[0] !== "car") && carOn(IT[b.it]) ? ". Some legs are by train or bus, so you may need the car for fewer days" : ""}.</p>
+      <div class="nchk ${ok || ext ? "" : "warn"}">${ok ? `✓ ${c.nights} nights, ${it.redeye ? "Fri 12 → Sat 20, then a red-eye home" : (target === 9 ? "Fri 12" : "Sat 13") + " → Sun 21"}` : ext ? `${c.nights} nights: ${fmtD(arrive)} → home ${fmtD(home)}. That's ${c.nights - target} extra day${c.nights - target > 1 ? "s" : ""} off.` : `${c.nights} nights. The dates fit ${target}, so adjust with − / +`}</div>
+      <p class="bnote">≈ ${fmtH(c.travelH)} of travel between stops${c.segs.some(s => s.o[0] !== "car") && carOn(IT[b.it]) ? ". Some legs are by train, bus or plane, so you may need the car for fewer days" : ""}.</p>
       ${wxCard(c.L)}
       ${c.dinners.length ? `<p class="bnote">Starred dinners: ${c.dinners.map(esc).join(", ")}</p>` : `<p class="bnote">Tap a restaurant under any stop to add it.</p>`}
       ${c.bookendHops ? `<p class="bnote">Includes ~$300 for each city stop that isn't on your flight path.</p>` : ""}`;
